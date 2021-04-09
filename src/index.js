@@ -25,17 +25,13 @@ import save from './save';
  *
  * @see https://developer.wordpress.org/block-editor/developers/block-api/#registering-a-block
  */
-registerBlockType( 'create-block/polco-recipe', {
+registerBlockType( 'litill/polco-insta-doodle', {
 	attributes: {
+		blockId: {
+			type: 'string',
+		},
 		title: {
 			type: 'string',
-			source: 'text',
-			selector: '.polcode-recipe--title',
-		},
-		summary: {
-			type: 'string',
-			source: 'html',
-			selector: '.polcode-recipe--summary-contents',
 		}
 	},
 	edit: Edit,

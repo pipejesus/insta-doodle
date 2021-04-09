@@ -1,14 +1,14 @@
 {
 	"apiVersion": 2,
-	"name": "create-block/polco-recipe",
-	"title": "Polco Recipe",
+	"name": "litill/polco-insta-doodle",
+	"title": "Polco Insta Doodle",
 	"category": "widgets",
 	"icon": "smiley",
-	"description": "Example block written with ESNext standard and JSX support – build step required.",
+	"description": "Example Polcode Gutenberg-Block plugin allowing you to create instant doodles. Written with ESNext standard and JSX support – build step required.",
 	"supports": {
 		"html": false
 	},
-	"textdomain": "polco-recipe",
+	"textdomain": "polco-insta-doodle",
 	"editorScript": "file:./build/index.js",
 	"editorStyle": "file:./build/index.css",
 	"style": "file:./build/style-index.css",

@@ -1,11 +1,5 @@
 {
-	"name": "litill/polco-recipe",
-	"description": "Example Polcode Gutenberg-Block plugin",
-	"type": "wordpress-plugin",
-	"scripts": {
-		"post-install-cmd": [
-			"npm install",
-			"npm run build"
-		]
-	}
+	"name": "litill/polco-insta-doodle",
+	"description": "Example Polcode Gutenberg-Block plugin allowing you to create instant doodles",
+	"type": "wordpress-plugin"
 }

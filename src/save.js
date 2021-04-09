@@ -24,12 +24,6 @@ import { useBlockProps, InnerBlocks, RichText } from '@wordpress/block-editor';
  */
 export default function save({attributes}) {
 	return (
-		<polcode-recipe { ...useBlockProps.save() }>
-			<div slot="header">
-				<h1 className="polcode-recipe--title">{ attributes.title }</h1>
-				<div className="polcode-recipe--summary"><RichText.Content className="polcode-recipe--summary-contents" tagName="p" value={ attributes.summary } /></div>
-			</div>
-			<div className="polcode-recipe--contents" slot="contents"><InnerBlocks.Content /></div>
-		</polcode-recipe>
+		<polcode-insta-doodle { ...useBlockProps.save() } title={ attributes.title } ></polcode-insta-doodle>
 	);
 }
