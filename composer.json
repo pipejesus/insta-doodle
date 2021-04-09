@@ -1,0 +1,11 @@
+{
+	"name": "litill/polco-recipe",
+	"description": "Example Polcode Gutenberg-Block plugin",
+	"type": "wordpress-plugin",
+	"scripts": {
+		"post-install-cmd": [
+			"npm install",
+			"npm run build"
+		]
+	}
+}

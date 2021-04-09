@@ -1,0 +1,16 @@
+{
+	"apiVersion": 2,
+	"name": "create-block/polco-recipe",
+	"title": "Polco Recipe",
+	"category": "widgets",
+	"icon": "smiley",
+	"description": "Example block written with ESNext standard and JSX support – build step required.",
+	"supports": {
+		"html": false
+	},
+	"textdomain": "polco-recipe",
+	"editorScript": "file:./build/index.js",
+	"editorStyle": "file:./build/index.css",
+	"style": "file:./build/style-index.css",
+	"script": "file:./build/front.js"
+}
