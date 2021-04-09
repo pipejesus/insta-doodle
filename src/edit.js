@@ -1,48 +1,53 @@
-/**
- * Retrieves the translation of text.
- *
- * @see https://developer.wordpress.org/block-editor/packages/packages-i18n/
- */
 import { __ } from '@wordpress/i18n';
+// import { Component } from '@wordpress/element'; // const { Component } = wp.element;
 import { Card, CardBody, CardHeader } from '@wordpress/components';
 import { TextControl } from '@wordpress/components';
-import domReady from '@wordpress/dom-ready';
-import p5 from 'p5';
-/**
- * React hook that is used to mark the block wrapper element.
- * It provides all the necessary props like the class name.
- *
- * @see https://developer.wordpress.org/block-editor/packages/packages-block-editor/#useBlockProps
- */
 import { useBlockProps } from '@wordpress/block-editor';
-
-/**
- * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
- * Those files can contain any CSS code that gets applied to the editor.
- *
- * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
- */
+import Sketch from "react-p5";
 import './editor.scss';
 
-/**
- * The edit function describes the structure of your block in the context of the
- * editor. This represents what the editor will render when the block is used.
- *
- * @see https://developer.wordpress.org/block-editor/developers/block-api/block-edit-save/#edit
- *
- * @return {WPElement} Element to render.
- */
 export default function Edit({ attributes, setAttributes, clientId }) {
-	const { blockId } = attributes;
-	if ( !blockId ) {
- 		setAttributes( { blockId: clientId } );
+
+	// const { blockId } = attributes;
+	// if ( !blockId ) {
+		// console.log('no block id, adding one!');
+ 		// setAttributes( { blockId: clientId } );
+		// console.log(document.querySelector('[data-block="' + blockId + '"]'));
+	// }
+
+	let drawing = false;
+	let x, y, oldX, oldY = 0;
+
+	const setup = (p5, canvasParentRef) => {
+		console.log('canvas parent ref:');
+		console.log(canvasParentRef);
+		p5.createCanvas(500, 500).parent(canvasParentRef);
+		p5.background(220);
+		p5.strokeWeight(5);
+		p5.stroke(40, 40, 0);
+		p5.strokeJoin(p5.ROUND);
+	};
+
+	const draw = (p5) => {
+		if (drawing === true) {
+			p5.line(oldX, oldY, p5.mouseX, p5.mouseY);
+			p5.line(oldX + Math.random() * 10, oldY + Math.random() * 10, p5.mouseX, p5.mouseY)
+			oldX = p5.mouseX;
+			oldY = p5.mouseY;
+		}
+	};
+
+	const touchStarted = (p5) => {
+		x = p5.mouseX;
+		y = p5.mouseY;
+		oldX = x;
+		oldY = y;
+		drawing = true;
 	}
 
-	domReady(()=>{
-		console.log('What is the blockid?');
-		console.log(blockId);
-		console.log(document.querySelector('#' + blockId));
-	});
+	const touchEnded = (p5) => {
+		drawing = false;
+	}
 
 	return (
 		<div { ...useBlockProps() }>
@@ -57,7 +62,7 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 				</CardHeader>
 				<CardBody>
 					<div className="p5js-canvas">
-						Hello canvas
+						<Sketch setup={setup} draw={draw} touchStarted={touchStarted} touchEnded={touchEnded} />
 					</div>
 				</CardBody>
 			</Card>
