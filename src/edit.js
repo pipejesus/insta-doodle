@@ -5,6 +5,7 @@ import { TextControl } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
 import Sketch from "react-p5";
 import './editor.scss';
+import p5 from 'p5';
 
 export default function Edit({ attributes, setAttributes, clientId }) {
 
@@ -17,15 +18,36 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 
 	let drawing = false;
 	let x, y, oldX, oldY = 0;
+	let canvasW, canvasH = 0;
+
+	const saveCanvasToProperty = (p5) => {
+		const picture = p5.canvas.toDataURL();
+		setAttributes({
+			picture: picture
+		});
+	}
+
+	const loadSavedCanvas = (p5) => {
+		if (attributes.picture != '') {
+			let img;
+			img = p5.loadImage(attributes.picture, (success) => {
+				p5.image( success, 0, 0, canvasW, canvasH );
+			}, (fail) => {
+				console.log(fail);
+			});
+
+		}
+	}
 
 	const setup = (p5, canvasParentRef) => {
-		console.log('canvas parent ref:');
-		console.log(canvasParentRef);
-		p5.createCanvas(500, 500).parent(canvasParentRef);
+		canvasW = canvasParentRef.offsetWidth;
+		canvasH = canvasW;
+		p5.createCanvas(canvasW, canvasH).parent(canvasParentRef);
 		p5.background(220);
 		p5.strokeWeight(5);
 		p5.stroke(40, 40, 0);
 		p5.strokeJoin(p5.ROUND);
+		loadSavedCanvas(p5);
 	};
 
 	const draw = (p5) => {
@@ -47,6 +69,7 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 
 	const touchEnded = (p5) => {
 		drawing = false;
+		saveCanvasToProperty(p5);
 	}
 
 	return (

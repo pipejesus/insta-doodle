@@ -32,6 +32,9 @@ registerBlockType( 'litill/polco-insta-doodle', {
 		},
 		title: {
 			type: 'string',
+		},
+		picture: {
+			type: 'strig'
 		}
 	},
 	edit: Edit,
