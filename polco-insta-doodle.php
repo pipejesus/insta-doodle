@@ -20,7 +20,7 @@
  *
  * @see https://developer.wordpress.org/block-editor/tutorials/block-tutorial/writing-your-first-block-type/
  */
-function create_block_polco_recipe_block_init() {
+function create_block_polco_insta_doodle_block_init() {
 	register_block_type_from_metadata( __DIR__ );
 }
-add_action( 'init', 'create_block_polco_recipe_block_init' );
+add_action( 'init', 'create_block_polco_insta_doodle_block_init' );
