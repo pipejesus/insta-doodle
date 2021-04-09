@@ -5,7 +5,7 @@ import {LitElement, html, css} from 'lit-element';
  * @slot - This element has a slot
  * @csspart button - The button
  */
- export class PolcoRecipeElement extends LitElement {
+ export class PolcoInstaDoodle extends LitElement {
 
   static get styles() {
     return css`
@@ -57,4 +57,4 @@ import {LitElement, html, css} from 'lit-element';
 	// createRenderRoot() { return this; }
 }
 
-window.customElements.define('polcode-recipe', PolcoRecipeElement);
+window.customElements.define('polcode-insta-doodle', PolcoInstaDoodle);
