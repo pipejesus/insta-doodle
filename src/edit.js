@@ -56,7 +56,7 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 					></TextControl>
 				</CardHeader>
 				<CardBody>
-					<div class="p5js-canvas">
+					<div className="p5js-canvas">
 						Hello canvas
 					</div>
 				</CardBody>
