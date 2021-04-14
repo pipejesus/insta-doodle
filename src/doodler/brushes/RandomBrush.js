@@ -1,7 +1,25 @@
-		// LEGACY: RANDOM BRUSH
+import Brush from "./Brush";
+
+export default class RandomBrush extends Brush {
+
+  init() {
+    this.surface.strokeWeight(this.brushSize);
+    this.surface.stroke(40, 40, 0);
+    this.surface.strokeJoin('round');
+    console.log('Random Brush Initialized');
+  }
+
+  draw(prevX, prevY, currX, currY) {
+		this.surface.line(prevX, prevY, currX, currY);
+		this.surface.line(prevX + Math.random() * 10, prevY + Math.random() * 10, currX, currY);
+  }
+
+}
+
+// LEGACY: RANDOM BRUSH
 		// if (drawing === true) {
-		// 	p5.line(oldX, oldY, p5.mouseX, p5.mouseY);
-		// 	p5.line(oldX + Math.random() * 10, oldY + Math.random() * 10, p5.mouseX, p5.mouseY)
-		// 	oldX = p5.mouseX;
-		// 	oldY = p5.mouseY;
+		// 	p5.line(prevX, prevY, currX, currY);
+		// 	p5.line(prevX + Math.random() * 10, prevY + Math.random() * 10, currX, currY)
+		// 	prevX = currX;
+		// 	prevY = currY;
 		// }

@@ -2,6 +2,7 @@ import React from "react";
 import p5 from "p5";
 import p5Types from "p5";
 import SimpleBrush from './brushes/SimpleBrush';
+import RandomBrush from './brushes/RandomBrush';
 
 // NOTE: assigning p5 to window because someone can need it globally to use in others libraries
 if (typeof window !== "undefined") {
@@ -59,7 +60,7 @@ export default class DoodlerB extends React.Component {
 	}
 
 	initBrushes() {
-		this.currentBrush = new SimpleBrush({
+		this.currentBrush = new RandomBrush({
 				surface: this.surface,
 				overlay: this.overlay,
 				brushSize: 5,

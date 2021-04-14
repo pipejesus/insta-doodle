@@ -24,8 +24,15 @@ export default class Brush {
   }
 
   init() {}
-  drawCursor(x, y) {}
-  draw(prevX, prevY, currX, currY) {}
+	draw(prevX, prevY, currX, currY) {}
+
+	drawCursor(x, y) {
+    this.overlay.clear();
+    this.overlay.stroke(187, 0, 27);
+    this.overlay.noFill();
+    this.overlay.ellipse(x, y, this.cursorSize, this.cursorSize);
+    this.overlay.ellipse(x, y, this.brushSize, this.brushSize);
+  }
 
 	onMouseWheel(event) {
     let oldBrushSize = this.brushSize;
