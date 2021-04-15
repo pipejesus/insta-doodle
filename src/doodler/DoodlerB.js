@@ -46,6 +46,7 @@ export default class DoodlerB extends React.Component {
 		this.currentBrush = {};
 		this.handleColorChange = this.handleColorChange.bind(this);
 		this.toggleColorPicker = this.toggleColorPicker.bind(this);
+		this.clearCanvas = this.clearCanvas.bind(this);
   }
 
 	setup(p5i, canvasParentRef) {
@@ -74,7 +75,7 @@ export default class DoodlerB extends React.Component {
 
 	touchEnded(p5i) {
 		this.drawing = false;
-		this.saveSelectedCanvasToProperty(p5i, this.surface);
+		this.saveSelectedCanvasToProperty(this.surface);
 	}
 
 	initBrushes() {
@@ -114,7 +115,7 @@ export default class DoodlerB extends React.Component {
 		}
 	}
 
-	saveSelectedCanvasToProperty(p5i, p5ObjectWithCanvas) {
+	saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
 		const picture = p5ObjectWithCanvas.canvas.toDataURL();
 		this.props.setAttributes({
 			picture: picture
@@ -174,6 +175,11 @@ export default class DoodlerB extends React.Component {
 		this.setState({isColorPicker: !this.state.isColorPicker});
 	}
 
+	clearCanvas() {
+		this.surface.clear();
+		this.saveSelectedCanvasToProperty(this.surface);
+	}
+
   render() {
     return (
 			<div>
@@ -183,6 +189,7 @@ export default class DoodlerB extends React.Component {
 						<Button isSecondary onClick={this.toggleColorPicker}>
 							<ColorIndicator color={this.state.currentColor}></ColorIndicator>
 						</Button>
+						<Button isSecondary onClick={this.clearCanvas}><Dashicon icon="trash"></Dashicon></Button>
 					</ButtonGroup>
 
 

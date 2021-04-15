@@ -569,6 +569,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     _this.currentBrush = {};
     _this.handleColorChange = _this.handleColorChange.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.toggleColorPicker = _this.toggleColorPicker.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.clearCanvas = _this.clearCanvas.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     return _this;
   }
 
@@ -611,7 +612,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     key: "touchEnded",
     value: function touchEnded(p5i) {
       this.drawing = false;
-      this.saveSelectedCanvasToProperty(p5i, this.surface);
+      this.saveSelectedCanvasToProperty(this.surface);
     }
   }, {
     key: "initBrushes",
@@ -652,7 +653,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     }
   }, {
     key: "saveSelectedCanvasToProperty",
-    value: function saveSelectedCanvasToProperty(p5i, p5ObjectWithCanvas) {
+    value: function saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
       var picture = p5ObjectWithCanvas.canvas.toDataURL();
       this.props.setAttributes({
         picture: picture
@@ -734,6 +735,12 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       });
     }
   }, {
+    key: "clearCanvas",
+    value: function clearCanvas() {
+      this.surface.clear();
+      this.saveSelectedCanvasToProperty(this.surface);
+    }
+  }, {
     key: "render",
     value: function render() {
       return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
@@ -746,6 +753,11 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         onClick: this.toggleColorPicker
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__["default"], {
         color: this.state.currentColor
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["Button"], {
+        isSecondary: true,
+        onClick: this.clearCanvas
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["Dashicon"], {
+        icon: "trash"
       })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         className: "insta-doodle-toolbar-contents"
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
