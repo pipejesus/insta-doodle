@@ -15,6 +15,12 @@ export default class DoodlerB extends React.Component {
   constructor(props) {
     super(props);
     this.canvasParentRef = React.createRef();
+		this.defaultBrush = 'randomBrush';
+		this.defaultBrushSize = Math.abs(this.props.brushSize) || 2,
+		this.defaultMinBrushSize = Math.abs(this.props.minBrushSize) || 1,
+		this.defaultMaxBrushSize = Math.abs(this.props.maxBrushSize) || 20,
+		this.defaultCursorSize = Math.abs(this.props.cursorSize) || 20,
+
 		this.canvas = null;
 		this.canvasW = 0;
 		this.canvasH = 0;
@@ -47,9 +53,9 @@ export default class DoodlerB extends React.Component {
 		this.overlay = p5i.createGraphics( this.canvasW, this.canvasH );
 		this.surface = p5i.createGraphics( this.canvasW, this.canvasH );
 		this.initBrushes();
-		this.canvas.mouseWheel( ( ev ) => { ev.preventDefault(); this.currentBrush.onMouseWheel( ev ); return false} );
 		p5i.noCursor();
 		this.loadSavedCanvas(p5i);
+		this.canvas.mouseWheel( ( ev ) => { ev.preventDefault(); this.currentBrush.onMouseWheel( ev ); return false} );
 	}
 
 	draw(p5i) {
@@ -74,24 +80,24 @@ export default class DoodlerB extends React.Component {
 		this.brushes.simpleBrush = new SimpleBrush({
 			surface: this.surface,
 			overlay: this.overlay,
-			brushSize: 5,
-			minBrushSize: 1,
-			maxBrushSize: 20,
-			cursorSize: 20,
+			brushSize: this.defaultBrushSize,
+			minBrushSize: this.defaultMinBrushSize,
+			maxBrushSize: this.defaultMaxBrushSize,
+			cursorSize: this.defaultCursorSize,
 			rgba: this.baseColorRgba,
 		});
 
 		this.brushes.randomBrush = new RandomBrush({
 			surface: this.surface,
 			overlay: this.overlay,
-			brushSize: 5,
-			minBrushSize: 1,
-			maxBrushSize: 20,
-			cursorSize: 20,
+			brushSize: this.defaultBrushSize,
+			minBrushSize: this.defaultMinBrushSize,
+			maxBrushSize: this.defaultMaxBrushSize,
+			cursorSize: this.defaultCursorSize,
 			rgba: this.baseColorRgba,
 		});
 
-		this.currentBrush = this.brushes.randomBrush;
+		this.currentBrush = this.brushes[this.defaultBrush];
 
 	}
 

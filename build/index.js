@@ -537,7 +537,8 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
 
     _this = _super.call(this, props);
     _this.canvasParentRef = react__WEBPACK_IMPORTED_MODULE_7___default.a.createRef();
-    _this.canvas = null;
+    _this.defaultBrush = 'randomBrush';
+    _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.canvas = null;
     _this.canvasW = 0;
     _this.canvasH = 0;
     _this.surface = null;
@@ -572,6 +573,8 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.overlay = p5i.createGraphics(this.canvasW, this.canvasH);
       this.surface = p5i.createGraphics(this.canvasW, this.canvasH);
       this.initBrushes();
+      p5i.noCursor();
+      this.loadSavedCanvas(p5i);
       this.canvas.mouseWheel(function (ev) {
         ev.preventDefault();
 
@@ -579,8 +582,6 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
 
         return false;
       });
-      p5i.noCursor();
-      this.loadSavedCanvas(p5i);
     }
   }, {
     key: "draw",
@@ -608,22 +609,22 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.brushes.simpleBrush = new _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_10__["default"]({
         surface: this.surface,
         overlay: this.overlay,
-        brushSize: 5,
-        minBrushSize: 1,
-        maxBrushSize: 20,
-        cursorSize: 20,
+        brushSize: this.defaultBrushSize,
+        minBrushSize: this.defaultMinBrushSize,
+        maxBrushSize: this.defaultMaxBrushSize,
+        cursorSize: this.defaultCursorSize,
         rgba: this.baseColorRgba
       });
       this.brushes.randomBrush = new _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_11__["default"]({
         surface: this.surface,
         overlay: this.overlay,
-        brushSize: 5,
-        minBrushSize: 1,
-        maxBrushSize: 20,
-        cursorSize: 20,
+        brushSize: this.defaultBrushSize,
+        minBrushSize: this.defaultMinBrushSize,
+        maxBrushSize: this.defaultMaxBrushSize,
+        cursorSize: this.defaultCursorSize,
         rgba: this.baseColorRgba
       });
-      this.currentBrush = this.brushes.randomBrush;
+      this.currentBrush = this.brushes[this.defaultBrush];
     }
   }, {
     key: "loadSavedCanvas",
