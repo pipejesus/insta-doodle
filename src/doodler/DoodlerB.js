@@ -1,5 +1,6 @@
 import React from "react";
 import p5 from "p5";
+import { RgbaColorPicker } from "react-colorful";
 import p5Types from "p5";
 import SimpleBrush from './brushes/SimpleBrush';
 import RandomBrush from './brushes/RandomBrush';
@@ -28,6 +29,15 @@ export default class DoodlerB extends React.Component {
 			'randomBrush': {}
 		}
 		this.currentBrush = {};
+
+		this.baseColorRgba = {
+			r: 61,
+			g: 61,
+			b: 61,
+			a: 1
+		};
+
+		this.handleColorChange = this.handleColorChange.bind(this);
   }
 
 	setup(p5i, canvasParentRef) {
@@ -60,14 +70,29 @@ export default class DoodlerB extends React.Component {
 	}
 
 	initBrushes() {
-		this.currentBrush = new RandomBrush({
-				surface: this.surface,
-				overlay: this.overlay,
-				brushSize: 5,
-				minBrushSize: 1,
-				maxBrushSize: 20,
-				cursorSize: 20
+
+		this.brushes.simpleBrush = new SimpleBrush({
+			surface: this.surface,
+			overlay: this.overlay,
+			brushSize: 5,
+			minBrushSize: 1,
+			maxBrushSize: 20,
+			cursorSize: 20,
+			rgba: this.baseColorRgba,
 		});
+
+		this.brushes.randomBrush = new RandomBrush({
+			surface: this.surface,
+			overlay: this.overlay,
+			brushSize: 5,
+			minBrushSize: 1,
+			maxBrushSize: 20,
+			cursorSize: 20,
+			rgba: this.baseColorRgba,
+		});
+
+		this.currentBrush = this.brushes.randomBrush;
+
 	}
 
 	loadSavedCanvas(p5i, p5ObjectWithCanvas) {
@@ -102,6 +127,13 @@ export default class DoodlerB extends React.Component {
 		p5i.image( this.overlay, 0, 0 );
 	}
 
+	handleColorChange(color) {
+		this.baseColorRgba = color;
+		for (let k in this.brushes) {
+			this.brushes[k].changeColor(this.baseColorRgba);
+		}
+	}
+
   componentDidMount() {
     this.sketch = new p5((p) => {
 
@@ -134,11 +166,16 @@ export default class DoodlerB extends React.Component {
 
   render() {
     return (
-      <div
-        ref={this.canvasParentRef}
-        className={this.props.className || "polco-insta-doodle-canvas"}
-        style={this.props.style || {}}
-      />
+			<div>
+				<div style={{marginBottom: '30px'}}>
+					<RgbaColorPicker color={this.baseColorRgba} onChange={ (color) => this.handleColorChange(color) } />
+				</div>
+				<div
+					ref={this.canvasParentRef}
+					className={this.props.className || "polco-insta-doodle-canvas"}
+					style={this.props.style || {}}
+				></div>
+			</div>
     );
   }
 }

@@ -8,23 +8,30 @@ export default class Brush {
       brushSize,
       minBrushSize,
       maxBrushSize,
-      cursorSize
+      cursorSize,
+			rgba
     } = config;
 
     this.surface = surface;
-		console.log('WHAT WE THINK IS SURDACE?');
-		console.log(surface);
     this.overlay = overlay;
     this.brushSize = brushSize;
     this.minBrushSize = minBrushSize;
     this.maxBrushSize = maxBrushSize;
     this.cursorSize = cursorSize;
+		this.rgba = rgba;
     this.init();
-
   }
 
   init() {}
 	draw(prevX, prevY, currX, currY) {}
+	updateDrawingColor() {}
+
+	changeColor(rgba) {
+		this.rgba = rgba;
+		console.log('received rgba:');
+		console.log(rgba);
+		this.updateDrawingColor();
+	}
 
 	drawCursor(x, y) {
     this.overlay.clear();
