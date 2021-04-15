@@ -1,5 +1,4 @@
 import { __ } from '@wordpress/i18n';
-// import { Component } from '@wordpress/element'; // const { Component } = wp.element;
 import { Card, CardBody, CardHeader } from '@wordpress/components';
 import { TextControl } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -34,11 +33,3 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 		</div>
 	);
 }
-
-		// LEGACY: RANDOM BRUSH
-		// if (drawing === true) {
-		// 	p5.line(oldX, oldY, p5.mouseX, p5.mouseY);
-		// 	p5.line(oldX + Math.random() * 10, oldY + Math.random() * 10, p5.mouseX, p5.mouseY)
-		// 	oldX = p5.mouseX;
-		// 	oldY = p5.mouseY;
-		// }

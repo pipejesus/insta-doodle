@@ -28,8 +28,6 @@ export default class Brush {
 
 	changeColor(rgba) {
 		this.rgba = rgba;
-		console.log('received rgba:');
-		console.log(rgba);
 		this.updateDrawingColor();
 	}
 

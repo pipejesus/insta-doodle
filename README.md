@@ -1,4 +1,4 @@
-Polco Insta Doodle
+Insta Doodle
 ==================
 
 Contributors:      Grzegorz Jasiński <grzegorz.jasinski@polcode.net>

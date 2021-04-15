@@ -2,18 +2,26 @@ import React from "react";
 import p5 from "p5";
 import { RgbaColorPicker } from "react-colorful";
 import p5Types from "p5";
+import ColorIndicator from './utils/ColorIndicator';
 import SimpleBrush from './brushes/SimpleBrush';
 import RandomBrush from './brushes/RandomBrush';
+import { Flex, FlexItem, FlexBlock, Dashicon, Button, ButtonGroup } from '@wordpress/components';
 
-// NOTE: assigning p5 to window because someone can need it globally to use in others libraries
 if (typeof window !== "undefined") {
   window.p5 = p5;
 }
-
 export default class DoodlerB extends React.Component {
 
   constructor(props) {
     super(props);
+
+		this.state = {
+			currentColor: {
+				r: 61, g: 61, b: 61, a: 1
+			},
+			isColorPicker: false
+		};
+
     this.canvasParentRef = React.createRef();
 		this.defaultBrush = 'randomBrush';
 		this.defaultBrushSize = Math.abs(this.props.brushSize) || 2,
@@ -32,18 +40,12 @@ export default class DoodlerB extends React.Component {
 		this.oldY = 0;
 		this.brushes = {
 			'simpleBrush': {},
-			'randomBrush': {}
+			'randomBrush': {},
+			// 'inkBrush': {}
 		}
 		this.currentBrush = {};
-
-		this.baseColorRgba = {
-			r: 61,
-			g: 61,
-			b: 61,
-			a: 1
-		};
-
 		this.handleColorChange = this.handleColorChange.bind(this);
+		this.toggleColorPicker = this.toggleColorPicker.bind(this);
   }
 
 	setup(p5i, canvasParentRef) {
@@ -84,7 +86,7 @@ export default class DoodlerB extends React.Component {
 			minBrushSize: this.defaultMinBrushSize,
 			maxBrushSize: this.defaultMaxBrushSize,
 			cursorSize: this.defaultCursorSize,
-			rgba: this.baseColorRgba,
+			rgba: this.state.currentColor,
 		});
 
 		this.brushes.randomBrush = new RandomBrush({
@@ -94,7 +96,7 @@ export default class DoodlerB extends React.Component {
 			minBrushSize: this.defaultMinBrushSize,
 			maxBrushSize: this.defaultMaxBrushSize,
 			cursorSize: this.defaultCursorSize,
-			rgba: this.baseColorRgba,
+			rgba: this.state.currentColor,
 		});
 
 		this.currentBrush = this.brushes[this.defaultBrush];
@@ -134,9 +136,11 @@ export default class DoodlerB extends React.Component {
 	}
 
 	handleColorChange(color) {
-		this.baseColorRgba = color;
+		this.setState({
+			currentColor: color
+		});
 		for (let k in this.brushes) {
-			this.brushes[k].changeColor(this.baseColorRgba);
+			this.brushes[k].changeColor(color);
 		}
 	}
 
@@ -162,19 +166,31 @@ export default class DoodlerB extends React.Component {
     });
   }
 
-  shouldComponentUpdate() {
-    return false;
-  }
-
   componentWillUnmount() {
     this.sketch.remove();
   }
 
+	toggleColorPicker() {
+		this.setState({isColorPicker: !this.state.isColorPicker});
+	}
+
   render() {
     return (
 			<div>
-				<div style={{marginBottom: '30px'}}>
-					<RgbaColorPicker color={this.baseColorRgba} onChange={ (color) => this.handleColorChange(color) } />
+
+				<div className="insta-doodle-toolbar" style={{marginBottom: '30px'}}>
+					<ButtonGroup>
+						<Button isSecondary onClick={this.toggleColorPicker}>
+							<ColorIndicator color={this.state.currentColor}></ColorIndicator>
+						</Button>
+					</ButtonGroup>
+
+
+				</div>
+				<div className="insta-doodle-toolbar-contents">
+					<div className="insta-doodle-colorpicker" style={{ display: this.state.isColorPicker ? 'block': 'none'}}>
+						<RgbaColorPicker color={this.state.currentColor} onChange={this.handleColorChange} />
+					</div>
 				</div>
 				<div
 					ref={this.canvasParentRef}
@@ -185,25 +201,3 @@ export default class DoodlerB extends React.Component {
     );
   }
 }
-
-// export const p5Events = [
-//   "draw",
-//   "windowResized",
-//   "preload",
-//   "mouseClicked",
-//   "doubleClicked",
-//   "mouseMoved",
-//   "mousePressed",
-//   "mouseWheel",
-//   "mouseDragged",
-//   "mouseReleased",
-//   "keyPressed",
-//   "keyReleased",
-//   "keyTyped",
-//   "touchStarted",
-//   "touchMoved",
-//   "touchEnded",
-//   "deviceMoved",
-//   "deviceTurned",
-//   "deviceShaken",
-// ];

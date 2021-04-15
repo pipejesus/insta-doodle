@@ -500,8 +500,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var p5__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! p5 */ "./node_modules/p5/lib/p5.min.js");
 /* harmony import */ var p5__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(p5__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var react_colorful__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react-colorful */ "./node_modules/react-colorful/dist/index.module.js");
-/* harmony import */ var _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./brushes/SimpleBrush */ "./src/doodler/brushes/SimpleBrush.js");
-/* harmony import */ var _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./brushes/RandomBrush */ "./src/doodler/brushes/RandomBrush.js");
+/* harmony import */ var _utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./utils/ColorIndicator */ "./src/doodler/utils/ColorIndicator.js");
+/* harmony import */ var _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./brushes/SimpleBrush */ "./src/doodler/brushes/SimpleBrush.js");
+/* harmony import */ var _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./brushes/RandomBrush */ "./src/doodler/brushes/RandomBrush.js");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__);
 
 
 
@@ -519,7 +522,9 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 
 
- // NOTE: assigning p5 to window because someone can need it globally to use in others libraries
+
+
+
 
 if (typeof window !== "undefined") {
   window.p5 = p5__WEBPACK_IMPORTED_MODULE_8___default.a;
@@ -536,6 +541,15 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, DoodlerB);
 
     _this = _super.call(this, props);
+    _this.state = {
+      currentColor: {
+        r: 61,
+        g: 61,
+        b: 61,
+        a: 1
+      },
+      isColorPicker: false
+    };
     _this.canvasParentRef = react__WEBPACK_IMPORTED_MODULE_7___default.a.createRef();
     _this.defaultBrush = 'randomBrush';
     _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.canvas = null;
@@ -549,16 +563,12 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     _this.oldY = 0;
     _this.brushes = {
       'simpleBrush': {},
-      'randomBrush': {}
+      'randomBrush': {} // 'inkBrush': {}
+
     };
     _this.currentBrush = {};
-    _this.baseColorRgba = {
-      r: 61,
-      g: 61,
-      b: 61,
-      a: 1
-    };
     _this.handleColorChange = _this.handleColorChange.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.toggleColorPicker = _this.toggleColorPicker.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     return _this;
   }
 
@@ -606,23 +616,23 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "initBrushes",
     value: function initBrushes() {
-      this.brushes.simpleBrush = new _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_10__["default"]({
+      this.brushes.simpleBrush = new _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_11__["default"]({
         surface: this.surface,
         overlay: this.overlay,
         brushSize: this.defaultBrushSize,
         minBrushSize: this.defaultMinBrushSize,
         maxBrushSize: this.defaultMaxBrushSize,
         cursorSize: this.defaultCursorSize,
-        rgba: this.baseColorRgba
+        rgba: this.state.currentColor
       });
-      this.brushes.randomBrush = new _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_11__["default"]({
+      this.brushes.randomBrush = new _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_12__["default"]({
         surface: this.surface,
         overlay: this.overlay,
         brushSize: this.defaultBrushSize,
         minBrushSize: this.defaultMinBrushSize,
         maxBrushSize: this.defaultMaxBrushSize,
         cursorSize: this.defaultCursorSize,
-        rgba: this.baseColorRgba
+        rgba: this.state.currentColor
       });
       this.currentBrush = this.brushes[this.defaultBrush];
     }
@@ -668,10 +678,12 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "handleColorChange",
     value: function handleColorChange(color) {
-      this.baseColorRgba = color;
+      this.setState({
+        currentColor: color
+      });
 
       for (var k in this.brushes) {
-        this.brushes[k].changeColor(this.baseColorRgba);
+        this.brushes[k].changeColor(color);
       }
     }
   }, {
@@ -710,30 +722,41 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       });
     }
   }, {
-    key: "shouldComponentUpdate",
-    value: function shouldComponentUpdate() {
-      return false;
-    }
-  }, {
     key: "componentWillUnmount",
     value: function componentWillUnmount() {
       this.sketch.remove();
     }
   }, {
+    key: "toggleColorPicker",
+    value: function toggleColorPicker() {
+      this.setState({
+        isColorPicker: !this.state.isColorPicker
+      });
+    }
+  }, {
     key: "render",
     value: function render() {
-      var _this5 = this;
-
       return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
+        className: "insta-doodle-toolbar",
         style: {
           marginBottom: '30px'
         }
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(react_colorful__WEBPACK_IMPORTED_MODULE_9__["RgbaColorPicker"], {
-        color: this.baseColorRgba,
-        onChange: function onChange(color) {
-          return _this5.handleColorChange(color);
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["Button"], {
+        isSecondary: true,
+        onClick: this.toggleColorPicker
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__["default"], {
+        color: this.state.currentColor
+      })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
+        className: "insta-doodle-toolbar-contents"
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
+        className: "insta-doodle-colorpicker",
+        style: {
+          display: this.state.isColorPicker ? 'block' : 'none'
         }
-      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(react_colorful__WEBPACK_IMPORTED_MODULE_9__["RgbaColorPicker"], {
+        color: this.state.currentColor,
+        onChange: this.handleColorChange
+      }))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         ref: this.canvasParentRef,
         className: this.props.className || "polco-insta-doodle-canvas",
         style: this.props.style || {}
@@ -742,28 +765,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }]);
 
   return DoodlerB;
-}(react__WEBPACK_IMPORTED_MODULE_7___default.a.Component); // export const p5Events = [
-//   "draw",
-//   "windowResized",
-//   "preload",
-//   "mouseClicked",
-//   "doubleClicked",
-//   "mouseMoved",
-//   "mousePressed",
-//   "mouseWheel",
-//   "mouseDragged",
-//   "mouseReleased",
-//   "keyPressed",
-//   "keyReleased",
-//   "keyTyped",
-//   "touchStarted",
-//   "touchMoved",
-//   "touchEnded",
-//   "deviceMoved",
-//   "deviceTurned",
-//   "deviceShaken",
-// ];
-
+}(react__WEBPACK_IMPORTED_MODULE_7___default.a.Component);
 
 
 
@@ -820,8 +822,6 @@ var Brush = /*#__PURE__*/function () {
     key: "changeColor",
     value: function changeColor(rgba) {
       this.rgba = rgba;
-      console.log('received rgba:');
-      console.log(rgba);
       this.updateDrawingColor();
     }
   }, {
@@ -921,20 +921,11 @@ var RandomBrush = /*#__PURE__*/function (_Brush) {
     key: "updateDrawingColor",
     value: function updateDrawingColor() {
       this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
-      console.log('after update:');
-      console.log(this.rgba);
     }
   }]);
 
   return RandomBrush;
-}(_Brush__WEBPACK_IMPORTED_MODULE_5__["default"]); // LEGACY: RANDOM BRUSH
-// if (drawing === true) {
-// 	p5.line(prevX, prevY, currX, currY);
-// 	p5.line(prevX + Math.random() * 10, prevY + Math.random() * 10, currX, currY)
-// 	prevX = currX;
-// 	prevY = currY;
-// }
-
+}(_Brush__WEBPACK_IMPORTED_MODULE_5__["default"]);
 
 
 
@@ -1011,6 +1002,33 @@ var SimpleBrush = /*#__PURE__*/function (_Brush) {
 
 /***/ }),
 
+/***/ "./src/doodler/utils/ColorIndicator.js":
+/*!*********************************************!*\
+  !*** ./src/doodler/utils/ColorIndicator.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+
+
+var ColorIndicator = function ColorIndicator(props) {
+  return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])("div", {
+    style: {
+      backgroundColor: "rgba(".concat(props.color.r, ", ").concat(props.color.g, ", ").concat(props.color.b, ", ").concat(props.color.a, ")"),
+      width: '20px',
+      height: '20px'
+    }
+  });
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (ColorIndicator);
+
+/***/ }),
+
 /***/ "./src/edit.js":
 /*!*********************!*\
   !*** ./src/edit.js ***!
@@ -1033,7 +1051,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _editor_scss__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_editor_scss__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _doodler_DoodlerB__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./doodler/DoodlerB */ "./src/doodler/DoodlerB.js");
 
- // import { Component } from '@wordpress/element'; // const { Component } = wp.element;
 
 
 
@@ -1063,13 +1080,7 @@ function Edit(_ref) {
     attributes: attributes,
     setAttributes: setAttributes
   }))));
-} // LEGACY: RANDOM BRUSH
-// if (drawing === true) {
-// 	p5.line(oldX, oldY, p5.mouseX, p5.mouseY);
-// 	p5.line(oldX + Math.random() * 10, oldY + Math.random() * 10, p5.mouseX, p5.mouseY)
-// 	oldX = p5.mouseX;
-// 	oldY = p5.mouseY;
-// }
+}
 
 /***/ }),
 
