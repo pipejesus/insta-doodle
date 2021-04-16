@@ -5,11 +5,10 @@ import p5Types from "p5";
 import ColorIndicator from './utils/ColorIndicator';
 import SimpleBrush from './brushes/SimpleBrush';
 import RandomBrush from './brushes/RandomBrush';
+import Undo from './utils/Undo';
+
 import { Flex, FlexItem, FlexBlock, Dashicon, Button, ButtonGroup } from '@wordpress/components';
 
-if (typeof window !== "undefined") {
-  window.p5 = p5;
-}
 export default class DoodlerB extends React.Component {
 
   constructor(props) {
@@ -19,34 +18,41 @@ export default class DoodlerB extends React.Component {
 			currentColor: {
 				r: 61, g: 61, b: 61, a: 1
 			},
-			isColorPicker: false
+			isColorPicker: false,
+			undoCurrentIndex: 0,
+			drawing: false,
 		};
 
+		this.p5i = {}; // p5 instance will be filled during componentDidMount
     this.canvasParentRef = React.createRef();
-		this.defaultBrush = 'randomBrush';
+
+		this.defaultBrush = this.props.defaultBrush || 'randomBrush';
 		this.defaultBrushSize = Math.abs(this.props.brushSize) || 2,
 		this.defaultMinBrushSize = Math.abs(this.props.minBrushSize) || 1,
 		this.defaultMaxBrushSize = Math.abs(this.props.maxBrushSize) || 20,
 		this.defaultCursorSize = Math.abs(this.props.cursorSize) || 20,
 
+		this.undo = {};
 		this.canvas = null;
 		this.canvasW = 0;
 		this.canvasH = 0;
 		this.surface = null;
 		this.overlay = null;
 		this.bgColor = 220;
-		this.drawing = false;
 		this.oldX = 0;
 		this.oldY = 0;
 		this.brushes = {
 			'simpleBrush': {},
 			'randomBrush': {},
-			// 'inkBrush': {}
 		}
 		this.currentBrush = {};
 		this.handleColorChange = this.handleColorChange.bind(this);
 		this.toggleColorPicker = this.toggleColorPicker.bind(this);
 		this.clearCanvas = this.clearCanvas.bind(this);
+		this.undoBack = this.undoBack.bind(this);
+		this.undoForward = this.undoForward.bind(this);
+		this.touchStarted = this.touchStarted.bind(this);
+		this.touchEnded = this.touchEnded.bind(this);
   }
 
 	setup(p5i, canvasParentRef) {
@@ -57,8 +63,17 @@ export default class DoodlerB extends React.Component {
 		this.surface = p5i.createGraphics( this.canvasW, this.canvasH );
 		this.initBrushes();
 		p5i.noCursor();
-		this.loadSavedCanvas(p5i);
-		this.canvas.mouseWheel( ( ev ) => { ev.preventDefault(); this.currentBrush.onMouseWheel( ev ); return false} );
+		this.loadSavedCanvasAndCreateUndo(p5i);
+		this.canvas.mouseWheel( ( ev ) => { ev.preventDefault(); this.currentBrush.onMouseWheel( ev );
+			return false} );
+
+		this.canvas.mousePressed( (e) => {
+			this.touchStarted(p5i);
+		});
+		this.canvas.mouseReleased( (e) => {
+			this.touchEnded(p5i);
+		});
+
 	}
 
 	draw(p5i) {
@@ -68,18 +83,18 @@ export default class DoodlerB extends React.Component {
 	}
 
 	touchStarted(p5i) {
-		this.drawing = true;
+		this.setState({drawing: true});
 		this.oldX = p5i.mouseX;
 		this.oldY = p5i.mouseY;
 	}
 
 	touchEnded(p5i) {
-		this.drawing = false;
+		this.setState({drawing: false});
+		this.addCurrentSurfacePictureToUndo();
 		this.saveSelectedCanvasToProperty(this.surface);
 	}
 
 	initBrushes() {
-
 		this.brushes.simpleBrush = new SimpleBrush({
 			surface: this.surface,
 			overlay: this.overlay,
@@ -101,29 +116,50 @@ export default class DoodlerB extends React.Component {
 		});
 
 		this.currentBrush = this.brushes[this.defaultBrush];
-
 	}
 
-	loadSavedCanvas(p5i, p5ObjectWithCanvas) {
+	loadSavedCanvasAndCreateUndo(p5i) {
 		if (this.props.attributes.picture != '') {
-			let img;
-			img = p5i.loadImage(this.props.attributes.picture, (loadedImage) => {
-				this.surface.image( loadedImage, 0, 0, this.canvasW, this.canvasH );
-			}, (fail) => {
-				console.log(fail);
-			});
+			this.replacePictureOnSurface(this.props.attributes.picture);
+			this.undo = new Undo( this.props.attributes.picture );
+		} else {
+			this.undo = new Undo( this.getCurrentCanvasPicture(this.canvas) );
 		}
 	}
 
-	saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
+	replacePictureOnSurface(encodedPicture) {
+		let img;
+		img = this.p5i.loadImage(encodedPicture, (loadedImage) => {
+			this.surface.clear();
+			this.surface.image( loadedImage, 0, 0, this.canvasW, this.canvasH );
+		}, (fail) => {
+			console.log(fail);
+		});
+	}
+
+	undoBack() {
+		const picture = this.undo.back();
+		this.replacePictureOnSurface(picture);
+	}
+
+	undoForward() {
+		const picture = this.undo.forward();
+		this.replacePictureOnSurface(picture);
+	}
+
+	getCurrentCanvasPicture(p5ObjectWithCanvas) {
 		const picture = p5ObjectWithCanvas.canvas.toDataURL();
+		return picture;
+	}
+
+	saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
 		this.props.setAttributes({
-			picture: picture
+			picture: this.getCurrentCanvasPicture(p5ObjectWithCanvas)
 		});
 	}
 
 	drawContentUsingCurrentBrush( p5i ) {
-		if ( this.drawing === true ) {
+		if ( this.state.drawing === true ) {
 			this.currentBrush.draw( this.oldX, this.oldY, p5i.mouseX, p5i.mouseY );
 		}
 		this.oldX = p5i.mouseX;
@@ -148,20 +184,14 @@ export default class DoodlerB extends React.Component {
   componentDidMount() {
     this.sketch = new p5((p) => {
 
+			this.p5i = p;
+
       p.setup = () => {
         this.setup(p, this.canvasParentRef.current);
       };
 
 			p['draw'] = (...rest) => {
 				 this.draw(p, ...rest);
-			}
-
-			p['touchStarted'] = (...rest) => {
-				this.touchStarted(p, ...rest);
-			}
-
-			p['touchEnded'] = (...rest) => {
-				this.touchEnded(p, ...rest);
 			}
 
     });
@@ -175,21 +205,28 @@ export default class DoodlerB extends React.Component {
 		this.setState({isColorPicker: !this.state.isColorPicker});
 	}
 
+	addCurrentSurfacePictureToUndo() {
+		const currentPicture = this.getCurrentCanvasPicture(this.surface);
+		this.undo.add(currentPicture);
+	}
+
 	clearCanvas() {
 		this.surface.clear();
+		this.addCurrentSurfacePictureToUndo();
 		this.saveSelectedCanvasToProperty(this.surface);
 	}
 
   render() {
     return (
 			<div>
-
 				<div className="insta-doodle-toolbar" style={{marginBottom: '30px'}}>
 					<ButtonGroup>
 						<Button isSecondary onClick={this.toggleColorPicker}>
 							<ColorIndicator color={this.state.currentColor}></ColorIndicator>
 						</Button>
 						<Button isSecondary onClick={this.clearCanvas}><Dashicon icon="trash"></Dashicon></Button>
+						<Button isSecondary onClick={this.undoBack}><Dashicon icon="undo"></Dashicon></Button>
+						<Button isSecondary onClick={this.undoForward}><Dashicon icon="redo"></Dashicon></Button>
 					</ButtonGroup>
 
 

@@ -503,8 +503,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./utils/ColorIndicator */ "./src/doodler/utils/ColorIndicator.js");
 /* harmony import */ var _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./brushes/SimpleBrush */ "./src/doodler/brushes/SimpleBrush.js");
 /* harmony import */ var _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./brushes/RandomBrush */ "./src/doodler/brushes/RandomBrush.js");
-/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
-/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _utils_Undo__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./utils/Undo */ "./src/doodler/utils/Undo.js");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__);
 
 
 
@@ -526,9 +527,6 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 
 
-if (typeof window !== "undefined") {
-  window.p5 = p5__WEBPACK_IMPORTED_MODULE_8___default.a;
-}
 
 var DoodlerB = /*#__PURE__*/function (_React$Component) {
   _babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_3___default()(DoodlerB, _React$Component);
@@ -548,28 +546,35 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         b: 61,
         a: 1
       },
-      isColorPicker: false
+      isColorPicker: false,
+      undoCurrentIndex: 0,
+      drawing: false
     };
+    _this.p5i = {}; // p5 instance will be filled during componentDidMount
+
     _this.canvasParentRef = react__WEBPACK_IMPORTED_MODULE_7___default.a.createRef();
-    _this.defaultBrush = 'randomBrush';
-    _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.canvas = null;
+    _this.defaultBrush = _this.props.defaultBrush || 'randomBrush';
+    _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.undo = {};
+    _this.canvas = null;
     _this.canvasW = 0;
     _this.canvasH = 0;
     _this.surface = null;
     _this.overlay = null;
     _this.bgColor = 220;
-    _this.drawing = false;
     _this.oldX = 0;
     _this.oldY = 0;
     _this.brushes = {
       'simpleBrush': {},
-      'randomBrush': {} // 'inkBrush': {}
-
+      'randomBrush': {}
     };
     _this.currentBrush = {};
     _this.handleColorChange = _this.handleColorChange.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.toggleColorPicker = _this.toggleColorPicker.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.clearCanvas = _this.clearCanvas.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.undoBack = _this.undoBack.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.undoForward = _this.undoForward.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.touchStarted = _this.touchStarted.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.touchEnded = _this.touchEnded.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     return _this;
   }
 
@@ -585,13 +590,19 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.surface = p5i.createGraphics(this.canvasW, this.canvasH);
       this.initBrushes();
       p5i.noCursor();
-      this.loadSavedCanvas(p5i);
+      this.loadSavedCanvasAndCreateUndo(p5i);
       this.canvas.mouseWheel(function (ev) {
         ev.preventDefault();
 
         _this2.currentBrush.onMouseWheel(ev);
 
         return false;
+      });
+      this.canvas.mousePressed(function (e) {
+        _this2.touchStarted(p5i);
+      });
+      this.canvas.mouseReleased(function (e) {
+        _this2.touchEnded(p5i);
       });
     }
   }, {
@@ -604,14 +615,19 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "touchStarted",
     value: function touchStarted(p5i) {
-      this.drawing = true;
+      this.setState({
+        drawing: true
+      });
       this.oldX = p5i.mouseX;
       this.oldY = p5i.mouseY;
     }
   }, {
     key: "touchEnded",
     value: function touchEnded(p5i) {
-      this.drawing = false;
+      this.setState({
+        drawing: false
+      });
+      this.addCurrentSurfacePictureToUndo();
       this.saveSelectedCanvasToProperty(this.surface);
     }
   }, {
@@ -638,31 +654,58 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.currentBrush = this.brushes[this.defaultBrush];
     }
   }, {
-    key: "loadSavedCanvas",
-    value: function loadSavedCanvas(p5i, p5ObjectWithCanvas) {
+    key: "loadSavedCanvasAndCreateUndo",
+    value: function loadSavedCanvasAndCreateUndo(p5i) {
+      if (this.props.attributes.picture != '') {
+        this.replacePictureOnSurface(this.props.attributes.picture);
+        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.props.attributes.picture);
+      } else {
+        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.getCurrentCanvasPicture(this.canvas));
+      }
+    }
+  }, {
+    key: "replacePictureOnSurface",
+    value: function replacePictureOnSurface(encodedPicture) {
       var _this3 = this;
 
-      if (this.props.attributes.picture != '') {
-        var img;
-        img = p5i.loadImage(this.props.attributes.picture, function (loadedImage) {
-          _this3.surface.image(loadedImage, 0, 0, _this3.canvasW, _this3.canvasH);
-        }, function (fail) {
-          console.log(fail);
-        });
-      }
+      var img;
+      img = this.p5i.loadImage(encodedPicture, function (loadedImage) {
+        _this3.surface.clear();
+
+        _this3.surface.image(loadedImage, 0, 0, _this3.canvasW, _this3.canvasH);
+      }, function (fail) {
+        console.log(fail);
+      });
+    }
+  }, {
+    key: "undoBack",
+    value: function undoBack() {
+      var picture = this.undo.back();
+      this.replacePictureOnSurface(picture);
+    }
+  }, {
+    key: "undoForward",
+    value: function undoForward() {
+      var picture = this.undo.forward();
+      this.replacePictureOnSurface(picture);
+    }
+  }, {
+    key: "getCurrentCanvasPicture",
+    value: function getCurrentCanvasPicture(p5ObjectWithCanvas) {
+      var picture = p5ObjectWithCanvas.canvas.toDataURL();
+      return picture;
     }
   }, {
     key: "saveSelectedCanvasToProperty",
     value: function saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
-      var picture = p5ObjectWithCanvas.canvas.toDataURL();
       this.props.setAttributes({
-        picture: picture
+        picture: this.getCurrentCanvasPicture(p5ObjectWithCanvas)
       });
     }
   }, {
     key: "drawContentUsingCurrentBrush",
     value: function drawContentUsingCurrentBrush(p5i) {
-      if (this.drawing === true) {
+      if (this.state.drawing === true) {
         this.currentBrush.draw(this.oldX, this.oldY, p5i.mouseX, p5i.mouseY);
       }
 
@@ -693,6 +736,8 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       var _this4 = this;
 
       this.sketch = new p5__WEBPACK_IMPORTED_MODULE_8___default.a(function (p) {
+        _this4.p5i = p;
+
         p.setup = function () {
           _this4.setup(p, _this4.canvasParentRef.current);
         };
@@ -703,22 +748,6 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
           }
 
           _this4.draw.apply(_this4, [p].concat(rest));
-        };
-
-        p['touchStarted'] = function () {
-          for (var _len2 = arguments.length, rest = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            rest[_key2] = arguments[_key2];
-          }
-
-          _this4.touchStarted.apply(_this4, [p].concat(rest));
-        };
-
-        p['touchEnded'] = function () {
-          for (var _len3 = arguments.length, rest = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            rest[_key3] = arguments[_key3];
-          }
-
-          _this4.touchEnded.apply(_this4, [p].concat(rest));
         };
       });
     }
@@ -735,9 +764,16 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       });
     }
   }, {
+    key: "addCurrentSurfacePictureToUndo",
+    value: function addCurrentSurfacePictureToUndo() {
+      var currentPicture = this.getCurrentCanvasPicture(this.surface);
+      this.undo.add(currentPicture);
+    }
+  }, {
     key: "clearCanvas",
     value: function clearCanvas() {
       this.surface.clear();
+      this.addCurrentSurfacePictureToUndo();
       this.saveSelectedCanvasToProperty(this.surface);
     }
   }, {
@@ -748,16 +784,26 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         style: {
           marginBottom: '30px'
         }
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["Button"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
         isSecondary: true,
         onClick: this.toggleColorPicker
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__["default"], {
         color: this.state.currentColor
-      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["Button"], {
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
         isSecondary: true,
         onClick: this.clearCanvas
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_13__["Dashicon"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
         icon: "trash"
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+        isSecondary: true,
+        onClick: this.undoBack
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
+        icon: "undo"
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+        isSecondary: true,
+        onClick: this.undoForward
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
+        icon: "redo"
       })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         className: "insta-doodle-toolbar-contents"
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
@@ -1038,6 +1084,87 @@ var ColorIndicator = function ColorIndicator(props) {
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (ColorIndicator);
+
+/***/ }),
+
+/***/ "./src/doodler/utils/Undo.js":
+/*!***********************************!*\
+  !*** ./src/doodler/utils/Undo.js ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Undo; });
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+var Undo = /*#__PURE__*/function () {
+  function Undo(currentPicture) {
+    _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Undo);
+
+    this.storage = [];
+    this.maxItems = 10; //todo
+
+    this.current = 0;
+    this.clear();
+    this.add(currentPicture);
+  }
+
+  _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Undo, [{
+    key: "clear",
+    value: function clear() {
+      this.storage = [];
+      this.current = 0;
+    } // [x] [] [] []
+
+  }, {
+    key: "add",
+    value: function add(pictureData) {
+      if (this.current < this.storage.length - 1) {
+        this.storage = this.storage.slice(0, this.current + 1);
+      }
+
+      this.storage.push(pictureData);
+      this.current = this.storage.length - 1;
+      console.log('ADDED, CURRENT: ' + this.current);
+      return this.current;
+    }
+  }, {
+    key: "forward",
+    value: function forward() {
+      var whichOne = this.current + 1;
+
+      if (whichOne > this.storage.length - 1) {
+        whichOne = this.storage.length - 1;
+      }
+
+      this.current = whichOne;
+      return this.storage[whichOne];
+    }
+  }, {
+    key: "back",
+    value: function back() {
+      var whichOne = this.current - 1;
+
+      if (whichOne < 0) {
+        whichOne = 0;
+      }
+
+      this.current = whichOne;
+      return this.storage[whichOne];
+    }
+  }]);
+
+  return Undo;
+}();
+
+
 
 /***/ }),
 
