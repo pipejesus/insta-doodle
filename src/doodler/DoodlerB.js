@@ -7,7 +7,7 @@ import SimpleBrush from './brushes/SimpleBrush';
 import RandomBrush from './brushes/RandomBrush';
 import Undo from './utils/Undo';
 
-import { Flex, FlexItem, FlexBlock, Dashicon, Button, ButtonGroup } from '@wordpress/components';
+import { Flex, FlexItem, FlexBlock, Dashicon, Button, ButtonGroup, SelectControl } from '@wordpress/components';
 
 export default class DoodlerB extends React.Component {
 
@@ -18,6 +18,7 @@ export default class DoodlerB extends React.Component {
 			currentColor: {
 				r: 61, g: 61, b: 61, a: 1
 			},
+			currentBrushName: 'RandomBrush',
 			isColorPicker: false,
 			undoCurrentIndex: 0,
 			drawing: false,
@@ -25,8 +26,12 @@ export default class DoodlerB extends React.Component {
 
 		this.p5i = {}; // p5 instance will be filled during componentDidMount
     this.canvasParentRef = React.createRef();
+		this.brushesList = [
+			{ label: 'Simple Brush', value: 'SimpleBrush' },
+			{ label: 'Random Brush', value: 'RandomBrush' },
+		];
 
-		this.defaultBrush = this.props.defaultBrush || 'randomBrush';
+		this.defaultBrush = this.props.defaultBrush || 'RandomBrush';
 		this.defaultBrushSize = Math.abs(this.props.brushSize) || 2,
 		this.defaultMinBrushSize = Math.abs(this.props.minBrushSize) || 1,
 		this.defaultMaxBrushSize = Math.abs(this.props.maxBrushSize) || 20,
@@ -41,10 +46,7 @@ export default class DoodlerB extends React.Component {
 		this.bgColor = 220;
 		this.oldX = 0;
 		this.oldY = 0;
-		this.brushes = {
-			'simpleBrush': {},
-			'randomBrush': {},
-		}
+		this.brushes = {}
 		this.currentBrush = {};
 		this.handleColorChange = this.handleColorChange.bind(this);
 		this.toggleColorPicker = this.toggleColorPicker.bind(this);
@@ -95,7 +97,7 @@ export default class DoodlerB extends React.Component {
 	}
 
 	initBrushes() {
-		this.brushes.simpleBrush = new SimpleBrush({
+		this.brushes["SimpleBrush"] = new SimpleBrush({
 			surface: this.surface,
 			overlay: this.overlay,
 			brushSize: this.defaultBrushSize,
@@ -105,7 +107,7 @@ export default class DoodlerB extends React.Component {
 			rgba: this.state.currentColor,
 		});
 
-		this.brushes.randomBrush = new RandomBrush({
+		this.brushes["RandomBrush"] = new RandomBrush({
 			surface: this.surface,
 			overlay: this.overlay,
 			brushSize: this.defaultBrushSize,
@@ -220,16 +222,32 @@ export default class DoodlerB extends React.Component {
     return (
 			<div>
 				<div className="insta-doodle-toolbar" style={{marginBottom: '30px'}}>
-					<ButtonGroup>
-						<Button isSecondary onClick={this.toggleColorPicker}>
-							<ColorIndicator color={this.state.currentColor}></ColorIndicator>
-						</Button>
-						<Button isSecondary onClick={this.clearCanvas}><Dashicon icon="trash"></Dashicon></Button>
-						<Button isSecondary onClick={this.undoBack}><Dashicon icon="undo"></Dashicon></Button>
-						<Button isSecondary onClick={this.undoForward}><Dashicon icon="redo"></Dashicon></Button>
-					</ButtonGroup>
-
-
+					<Flex>
+						<FlexItem>
+							<ButtonGroup>
+								<Button isSecondary onClick={this.toggleColorPicker}>
+									<ColorIndicator color={this.state.currentColor}></ColorIndicator>
+								</Button>
+								<Button isSecondary onClick={this.clearCanvas}><Dashicon icon="trash"></Dashicon></Button>
+								<Button isSecondary onClick={this.undoBack}><Dashicon icon="undo"></Dashicon></Button>
+								<Button isSecondary onClick={this.undoForward}><Dashicon icon="redo"></Dashicon></Button>
+							</ButtonGroup>
+						</FlexItem>
+						<FlexBlock>
+							<SelectControl
+								style={{ height: 'auto' }}
+								label="Brush"
+								hideLabelFromVision={ true }
+								value={ this.state.currentBrushName }
+								options={ this.brushesList }
+								onChange={ ( brushClassName ) => {
+										this.setState( { currentBrushName: brushClassName }, ()=>{
+											this.currentBrush = this.brushes[this.state.currentBrushName];
+										});
+								} }
+							/>
+						</FlexBlock>
+					</Flex>
 				</div>
 				<div className="insta-doodle-toolbar-contents">
 					<div className="insta-doodle-colorpicker" style={{ display: this.state.isColorPicker ? 'block': 'none'}}>

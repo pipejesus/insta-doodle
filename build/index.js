@@ -546,6 +546,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         b: 61,
         a: 1
       },
+      currentBrushName: 'RandomBrush',
       isColorPicker: false,
       undoCurrentIndex: 0,
       drawing: false
@@ -553,7 +554,14 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     _this.p5i = {}; // p5 instance will be filled during componentDidMount
 
     _this.canvasParentRef = react__WEBPACK_IMPORTED_MODULE_7___default.a.createRef();
-    _this.defaultBrush = _this.props.defaultBrush || 'randomBrush';
+    _this.brushesList = [{
+      label: 'Simple Brush',
+      value: 'SimpleBrush'
+    }, {
+      label: 'Random Brush',
+      value: 'RandomBrush'
+    }];
+    _this.defaultBrush = _this.props.defaultBrush || 'RandomBrush';
     _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.undo = {};
     _this.canvas = null;
     _this.canvasW = 0;
@@ -563,10 +571,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     _this.bgColor = 220;
     _this.oldX = 0;
     _this.oldY = 0;
-    _this.brushes = {
-      'simpleBrush': {},
-      'randomBrush': {}
-    };
+    _this.brushes = {};
     _this.currentBrush = {};
     _this.handleColorChange = _this.handleColorChange.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.toggleColorPicker = _this.toggleColorPicker.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
@@ -633,7 +638,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "initBrushes",
     value: function initBrushes() {
-      this.brushes.simpleBrush = new _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_11__["default"]({
+      this.brushes["SimpleBrush"] = new _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_11__["default"]({
         surface: this.surface,
         overlay: this.overlay,
         brushSize: this.defaultBrushSize,
@@ -642,7 +647,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         cursorSize: this.defaultCursorSize,
         rgba: this.state.currentColor
       });
-      this.brushes.randomBrush = new _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_12__["default"]({
+      this.brushes["RandomBrush"] = new _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_12__["default"]({
         surface: this.surface,
         overlay: this.overlay,
         brushSize: this.defaultBrushSize,
@@ -779,12 +784,14 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
+      var _this5 = this;
+
       return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         className: "insta-doodle-toolbar",
         style: {
           marginBottom: '30px'
         }
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Flex"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["FlexItem"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
         isSecondary: true,
         onClick: this.toggleColorPicker
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__["default"], {
@@ -804,6 +811,21 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         onClick: this.undoForward
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
         icon: "redo"
+      })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["FlexBlock"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["SelectControl"], {
+        style: {
+          height: 'auto'
+        },
+        label: "Brush",
+        hideLabelFromVision: true,
+        value: this.state.currentBrushName,
+        options: this.brushesList,
+        onChange: function onChange(brushClassName) {
+          _this5.setState({
+            currentBrushName: brushClassName
+          }, function () {
+            _this5.currentBrush = _this5.brushes[_this5.state.currentBrushName];
+          });
+        }
       })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         className: "insta-doodle-toolbar-contents"
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
