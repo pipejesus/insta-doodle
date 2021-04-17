@@ -919,11 +919,11 @@ var Brush = /*#__PURE__*/function () {
       var oldBrushSize = this.brushSize;
 
       if (event.deltaY < 0) {
-        this.brushSize--;
-        this.brushSize = Math.max(this.minBrushSize, this.brushSize);
-      } else if (event.deltaY > 0) {
         this.brushSize++;
         this.brushSize = Math.min(this.brushSize, this.maxBrushSize);
+      } else if (event.deltaY > 0) {
+        this.brushSize--;
+        this.brushSize = Math.max(this.minBrushSize, this.brushSize);
       }
 
       if (this.brushSize != this.oldBrushSize) {
