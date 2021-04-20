@@ -614,8 +614,9 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     key: "draw",
     value: function draw(p5i) {
       p5i.background(this.bgColor);
-      this.drawContentUsingCurrentBrush(p5i);
-      this.drawCursorUsingCurrentBrush(p5i);
+      var dt = p5i.deltaTime;
+      this.drawContentUsingCurrentBrush(p5i, dt);
+      this.drawCursorUsingCurrentBrush(p5i, dt);
     }
   }, {
     key: "touchStarted",
@@ -661,9 +662,9 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "loadSavedCanvasAndCreateUndo",
     value: function loadSavedCanvasAndCreateUndo(p5i) {
-      if (this.props.attributes.picture != '') {
-        this.replacePictureOnSurface(this.props.attributes.picture);
-        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.props.attributes.picture);
+      if (this.props.picture != '') {
+        this.replacePictureOnSurface(this.props.picture);
+        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.props.picture);
       } else {
         this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.getCurrentCanvasPicture(this.canvas));
       }
@@ -700,16 +701,19 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       var picture = p5ObjectWithCanvas.canvas.toDataURL();
       return picture;
     }
+    /**
+     * Execute save function passed as callback in the props
+     * @param {*} p5ObjectWithCanvas
+     */
+
   }, {
     key: "saveSelectedCanvasToProperty",
     value: function saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
-      this.props.setAttributes({
-        picture: this.getCurrentCanvasPicture(p5ObjectWithCanvas)
-      });
+      this.props.saveCanvas(this.getCurrentCanvasPicture(p5ObjectWithCanvas));
     }
   }, {
     key: "drawContentUsingCurrentBrush",
-    value: function drawContentUsingCurrentBrush(p5i) {
+    value: function drawContentUsingCurrentBrush(p5i, dt) {
       if (this.state.drawing === true) {
         this.currentBrush.draw(this.oldX, this.oldY, p5i.mouseX, p5i.mouseY);
       }
@@ -720,7 +724,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     }
   }, {
     key: "drawCursorUsingCurrentBrush",
-    value: function drawCursorUsingCurrentBrush(p5i) {
+    value: function drawCursorUsingCurrentBrush(p5i, dt) {
       this.currentBrush.drawCursor(p5i.mouseX, p5i.mouseY);
       p5i.image(this.overlay, 0, 0);
     }
@@ -1222,12 +1226,19 @@ function Edit(_ref) {
   var attributes = _ref.attributes,
       setAttributes = _ref.setAttributes,
       clientId = _ref.clientId;
+
   // const { blockId } = attributes;
   // if ( !blockId ) {
   // console.log('no block id, adding one!');
   // setAttributes( { blockId: clientId } );
   // console.log(document.querySelector('[data-block="' + blockId + '"]'));
   // }
+  var saveCanvasToGutebergProps = function saveCanvasToGutebergProps(pictureEncoded) {
+    setAttributes({
+      picture: pictureEncoded
+    });
+  };
+
   return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])("div", Object(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_3__["useBlockProps"])(), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__["Card"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__["CardHeader"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__["TextControl"], {
     label: Object(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__["__"])('Doodle title'),
     placeholder: Object(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__["__"])('Doodle title'),
@@ -1238,8 +1249,8 @@ function Edit(_ref) {
       });
     }
   })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__["CardBody"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__["createElement"])(_doodler_DoodlerB__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    attributes: attributes,
-    setAttributes: setAttributes
+    picture: attributes.picture,
+    saveCanvas: saveCanvasToGutebergProps
   }))));
 }
 

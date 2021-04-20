@@ -15,6 +15,12 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 		// console.log(document.querySelector('[data-block="' + blockId + '"]'));
 	// }
 
+	const saveCanvasToGutebergProps = (pictureEncoded) => {
+		setAttributes({
+			picture: pictureEncoded
+		});
+	}
+
 	return (
 		<div { ...useBlockProps() }>
 			<Card >
@@ -27,7 +33,7 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 					></TextControl>
 				</CardHeader>
 				<CardBody>
-					<DoodlerB attributes={attributes} setAttributes={setAttributes}></DoodlerB>
+					<DoodlerB picture={ attributes.picture } saveCanvas={ saveCanvasToGutebergProps }></DoodlerB>
 				</CardBody>
 			</Card>
 		</div>

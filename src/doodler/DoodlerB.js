@@ -80,8 +80,9 @@ export default class DoodlerB extends React.Component {
 
 	draw(p5i) {
 		p5i.background(this.bgColor);
-		this.drawContentUsingCurrentBrush(p5i);
-		this.drawCursorUsingCurrentBrush(p5i);
+		const dt = p5i.deltaTime;
+		this.drawContentUsingCurrentBrush(p5i, dt);
+		this.drawCursorUsingCurrentBrush(p5i, dt);
 	}
 
 	touchStarted(p5i) {
@@ -121,9 +122,9 @@ export default class DoodlerB extends React.Component {
 	}
 
 	loadSavedCanvasAndCreateUndo(p5i) {
-		if (this.props.attributes.picture != '') {
-			this.replacePictureOnSurface(this.props.attributes.picture);
-			this.undo = new Undo( this.props.attributes.picture );
+		if (this.props.picture != '') {
+			this.replacePictureOnSurface(this.props.picture);
+			this.undo = new Undo( this.props.picture );
 		} else {
 			this.undo = new Undo( this.getCurrentCanvasPicture(this.canvas) );
 		}
@@ -154,13 +155,15 @@ export default class DoodlerB extends React.Component {
 		return picture;
 	}
 
+	/**
+	 * Execute save function passed as callback in the props
+	 * @param {*} p5ObjectWithCanvas
+	 */
 	saveSelectedCanvasToProperty(p5ObjectWithCanvas) {
-		this.props.setAttributes({
-			picture: this.getCurrentCanvasPicture(p5ObjectWithCanvas)
-		});
+		this.props.saveCanvas( this.getCurrentCanvasPicture(p5ObjectWithCanvas) );
 	}
 
-	drawContentUsingCurrentBrush( p5i ) {
+	drawContentUsingCurrentBrush( p5i, dt ) {
 		if ( this.state.drawing === true ) {
 			this.currentBrush.draw( this.oldX, this.oldY, p5i.mouseX, p5i.mouseY );
 		}
@@ -169,7 +172,7 @@ export default class DoodlerB extends React.Component {
 		p5i.image( this.surface, 0, 0 );
 	}
 
-	drawCursorUsingCurrentBrush( p5i ) {
+	drawCursorUsingCurrentBrush( p5i, dt ) {
 		this.currentBrush.drawCursor( p5i.mouseX, p5i.mouseY );
 		p5i.image( this.overlay, 0, 0 );
 	}
