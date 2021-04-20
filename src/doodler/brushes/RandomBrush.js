@@ -9,7 +9,7 @@ export default class RandomBrush extends Brush {
     console.log('Random Brush Initialized');
   }
 
-  draw(prevX, prevY, currX, currY) {
+  draw(prevX, prevY, currX, currY, dt) {
 		this.surface.line(prevX, prevY, currX, currY);
 		this.surface.line(prevX + Math.random() * 10, prevY + Math.random() * 10, currX, currY);
   }

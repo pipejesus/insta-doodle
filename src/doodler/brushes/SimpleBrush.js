@@ -9,7 +9,7 @@ export default class SimpleBrush extends Brush {
     console.log('Simple Brush Initialized');
   }
 
-  draw(prevX, prevY, currX, currY) {
+  draw(prevX, prevY, currX, currY, dt) {
     this.surface.line(prevX, prevY, currX, currY);
   }
 

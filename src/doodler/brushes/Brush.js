@@ -15,6 +15,7 @@ export default class Brush {
     this.surface = surface;
     this.overlay = overlay;
     this.brushSize = brushSize;
+		this.originalBrushSize = brushSize;
     this.minBrushSize = minBrushSize;
     this.maxBrushSize = maxBrushSize;
     this.cursorSize = cursorSize;
@@ -23,8 +24,10 @@ export default class Brush {
   }
 
   init() {}
-	draw(prevX, prevY, currX, currY) {}
+	draw(prevX, prevY, currX, currY,dt) {}
 	updateDrawingColor() {}
+	touchStarted() {}
+	touchEnded() {}
 
 	changeColor(rgba) {
 		this.rgba = rgba;

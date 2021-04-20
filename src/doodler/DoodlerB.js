@@ -5,6 +5,7 @@ import p5Types from "p5";
 import ColorIndicator from './utils/ColorIndicator';
 import SimpleBrush from './brushes/SimpleBrush';
 import RandomBrush from './brushes/RandomBrush';
+import InkBrush from './brushes/InkBrush';
 import Undo from './utils/Undo';
 
 import { Flex, FlexItem, FlexBlock, Dashicon, Button, ButtonGroup, SelectControl } from '@wordpress/components';
@@ -29,9 +30,10 @@ export default class DoodlerB extends React.Component {
 		this.brushesList = [
 			{ label: 'Simple Brush', value: 'SimpleBrush' },
 			{ label: 'Random Brush', value: 'RandomBrush' },
+			{ label: 'Ink Brush', value: 'InkBrush' },
 		];
 
-		this.defaultBrush = this.props.defaultBrush || 'RandomBrush';
+		this.defaultBrush = this.props.defaultBrush || 'InkBrush';
 		this.defaultBrushSize = Math.abs(this.props.brushSize) || 2,
 		this.defaultMinBrushSize = Math.abs(this.props.minBrushSize) || 1,
 		this.defaultMaxBrushSize = Math.abs(this.props.maxBrushSize) || 20,
@@ -87,12 +89,14 @@ export default class DoodlerB extends React.Component {
 
 	touchStarted(p5i) {
 		this.setState({drawing: true});
+		this.currentBrush.touchStarted();
 		this.oldX = p5i.mouseX;
 		this.oldY = p5i.mouseY;
 	}
 
 	touchEnded(p5i) {
 		this.setState({drawing: false});
+		this.currentBrush.touchEnded();
 		this.addCurrentSurfacePictureToUndo();
 		this.saveSelectedCanvasToProperty(this.surface);
 	}
@@ -109,6 +113,16 @@ export default class DoodlerB extends React.Component {
 		});
 
 		this.brushes["RandomBrush"] = new RandomBrush({
+			surface: this.surface,
+			overlay: this.overlay,
+			brushSize: this.defaultBrushSize,
+			minBrushSize: this.defaultMinBrushSize,
+			maxBrushSize: this.defaultMaxBrushSize,
+			cursorSize: this.defaultCursorSize,
+			rgba: this.state.currentColor,
+		});
+
+		this.brushes["InkBrush"] = new InkBrush({
 			surface: this.surface,
 			overlay: this.overlay,
 			brushSize: this.defaultBrushSize,
@@ -165,7 +179,7 @@ export default class DoodlerB extends React.Component {
 
 	drawContentUsingCurrentBrush( p5i, dt ) {
 		if ( this.state.drawing === true ) {
-			this.currentBrush.draw( this.oldX, this.oldY, p5i.mouseX, p5i.mouseY );
+			this.currentBrush.draw( this.oldX, this.oldY, p5i.mouseX, p5i.mouseY, dt);
 		}
 		this.oldX = p5i.mouseX;
 		this.oldY = p5i.mouseY;

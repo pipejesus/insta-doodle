@@ -9,13 +9,27 @@ export default class InkBrush extends Brush {
     console.log('Ink Brush Initialized');
   }
 
-  draw(prevX, prevY, currX, currY) {
+  draw(prevX, prevY, currX, currY, dt) {
 		this.surface.line(prevX, prevY, currX, currY);
-		this.surface.line(prevX + Math.random() * 10, prevY + Math.random() * 10, currX, currY);
+		if ( this.brushSize < this.maxBrushSize ) {
+			this.brushSize = this.brushSize
+			+ ( dt / 40);
+			this.surface.strokeWeight(this.brushSize);
+		}
   }
 
 	updateDrawingColor() {
 		this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
 	}
+
+	touchStarted() {
+		this.originalBrushSize = this.brushSize;
+	}
+
+	touchEnded() {
+		this.brushSize = this.originalBrushSize;
+		this.surface.strokeWeight(this.brushSize);
+	}
+
 
 }

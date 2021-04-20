@@ -503,9 +503,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./utils/ColorIndicator */ "./src/doodler/utils/ColorIndicator.js");
 /* harmony import */ var _brushes_SimpleBrush__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./brushes/SimpleBrush */ "./src/doodler/brushes/SimpleBrush.js");
 /* harmony import */ var _brushes_RandomBrush__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./brushes/RandomBrush */ "./src/doodler/brushes/RandomBrush.js");
-/* harmony import */ var _utils_Undo__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./utils/Undo */ "./src/doodler/utils/Undo.js");
-/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
-/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var _brushes_InkBrush__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./brushes/InkBrush */ "./src/doodler/brushes/InkBrush.js");
+/* harmony import */ var _utils_Undo__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./utils/Undo */ "./src/doodler/utils/Undo.js");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__);
 
 
 
@@ -517,6 +518,7 @@ __webpack_require__.r(__webpack_exports__);
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_4___default()(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
 
 
 
@@ -560,8 +562,11 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     }, {
       label: 'Random Brush',
       value: 'RandomBrush'
+    }, {
+      label: 'Ink Brush',
+      value: 'InkBrush'
     }];
-    _this.defaultBrush = _this.props.defaultBrush || 'RandomBrush';
+    _this.defaultBrush = _this.props.defaultBrush || 'InkBrush';
     _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.undo = {};
     _this.canvas = null;
     _this.canvasW = 0;
@@ -624,6 +629,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.setState({
         drawing: true
       });
+      this.currentBrush.touchStarted();
       this.oldX = p5i.mouseX;
       this.oldY = p5i.mouseY;
     }
@@ -633,6 +639,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.setState({
         drawing: false
       });
+      this.currentBrush.touchEnded();
       this.addCurrentSurfacePictureToUndo();
       this.saveSelectedCanvasToProperty(this.surface);
     }
@@ -657,6 +664,15 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         cursorSize: this.defaultCursorSize,
         rgba: this.state.currentColor
       });
+      this.brushes["InkBrush"] = new _brushes_InkBrush__WEBPACK_IMPORTED_MODULE_13__["default"]({
+        surface: this.surface,
+        overlay: this.overlay,
+        brushSize: this.defaultBrushSize,
+        minBrushSize: this.defaultMinBrushSize,
+        maxBrushSize: this.defaultMaxBrushSize,
+        cursorSize: this.defaultCursorSize,
+        rgba: this.state.currentColor
+      });
       this.currentBrush = this.brushes[this.defaultBrush];
     }
   }, {
@@ -664,9 +680,9 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     value: function loadSavedCanvasAndCreateUndo(p5i) {
       if (this.props.picture != '') {
         this.replacePictureOnSurface(this.props.picture);
-        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.props.picture);
+        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_14__["default"](this.props.picture);
       } else {
-        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_13__["default"](this.getCurrentCanvasPicture(this.canvas));
+        this.undo = new _utils_Undo__WEBPACK_IMPORTED_MODULE_14__["default"](this.getCurrentCanvasPicture(this.canvas));
       }
     }
   }, {
@@ -715,7 +731,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     key: "drawContentUsingCurrentBrush",
     value: function drawContentUsingCurrentBrush(p5i, dt) {
       if (this.state.drawing === true) {
-        this.currentBrush.draw(this.oldX, this.oldY, p5i.mouseX, p5i.mouseY);
+        this.currentBrush.draw(this.oldX, this.oldY, p5i.mouseX, p5i.mouseY, dt);
       }
 
       this.oldX = p5i.mouseX;
@@ -795,27 +811,27 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         style: {
           marginBottom: '30px'
         }
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Flex"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["FlexItem"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Flex"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["FlexItem"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["ButtonGroup"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Button"], {
         isSecondary: true,
         onClick: this.toggleColorPicker
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_utils_ColorIndicator__WEBPACK_IMPORTED_MODULE_10__["default"], {
         color: this.state.currentColor
-      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Button"], {
         isSecondary: true,
         onClick: this.clearCanvas
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Dashicon"], {
         icon: "trash"
-      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Button"], {
         isSecondary: true,
         onClick: this.undoBack
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Dashicon"], {
         icon: "undo"
-      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Button"], {
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Button"], {
         isSecondary: true,
         onClick: this.undoForward
-      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["Dashicon"], {
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Dashicon"], {
         icon: "redo"
-      })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["FlexBlock"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_14__["SelectControl"], {
+      })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["FlexBlock"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["SelectControl"], {
         style: {
           height: 'auto'
         },
@@ -886,6 +902,7 @@ var Brush = /*#__PURE__*/function () {
     this.surface = surface;
     this.overlay = overlay;
     this.brushSize = brushSize;
+    this.originalBrushSize = brushSize;
     this.minBrushSize = minBrushSize;
     this.maxBrushSize = maxBrushSize;
     this.cursorSize = cursorSize;
@@ -898,10 +915,16 @@ var Brush = /*#__PURE__*/function () {
     value: function init() {}
   }, {
     key: "draw",
-    value: function draw(prevX, prevY, currX, currY) {}
+    value: function draw(prevX, prevY, currX, currY, dt) {}
   }, {
     key: "updateDrawingColor",
     value: function updateDrawingColor() {}
+  }, {
+    key: "touchStarted",
+    value: function touchStarted() {}
+  }, {
+    key: "touchEnded",
+    value: function touchEnded() {}
   }, {
     key: "changeColor",
     value: function changeColor(rgba) {
@@ -938,6 +961,93 @@ var Brush = /*#__PURE__*/function () {
 
   return Brush;
 }();
+
+
+
+/***/ }),
+
+/***/ "./src/doodler/brushes/InkBrush.js":
+/*!*****************************************!*\
+  !*** ./src/doodler/brushes/InkBrush.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InkBrush; });
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js");
+/* harmony import */ var _babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js");
+/* harmony import */ var _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js");
+/* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _Brush__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Brush */ "./src/doodler/brushes/Brush.js");
+
+
+
+
+
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3___default()(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+
+
+var InkBrush = /*#__PURE__*/function (_Brush) {
+  _babel_runtime_helpers_inherits__WEBPACK_IMPORTED_MODULE_2___default()(InkBrush, _Brush);
+
+  var _super = _createSuper(InkBrush);
+
+  function InkBrush() {
+    _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, InkBrush);
+
+    return _super.apply(this, arguments);
+  }
+
+  _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default()(InkBrush, [{
+    key: "init",
+    value: function init() {
+      this.surface.strokeWeight(this.brushSize);
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+      this.surface.strokeJoin('round');
+      console.log('Ink Brush Initialized');
+    }
+  }, {
+    key: "draw",
+    value: function draw(prevX, prevY, currX, currY, dt) {
+      this.surface.line(prevX, prevY, currX, currY);
+
+      if (this.brushSize < this.maxBrushSize) {
+        this.brushSize = this.brushSize + dt / 40;
+        this.surface.strokeWeight(this.brushSize);
+      }
+    }
+  }, {
+    key: "updateDrawingColor",
+    value: function updateDrawingColor() {
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+    }
+  }, {
+    key: "touchStarted",
+    value: function touchStarted() {
+      this.originalBrushSize = this.brushSize;
+    }
+  }, {
+    key: "touchEnded",
+    value: function touchEnded() {
+      this.brushSize = this.originalBrushSize;
+      this.surface.strokeWeight(this.brushSize);
+    }
+  }]);
+
+  return InkBrush;
+}(_Brush__WEBPACK_IMPORTED_MODULE_5__["default"]);
 
 
 
@@ -997,7 +1107,7 @@ var RandomBrush = /*#__PURE__*/function (_Brush) {
     }
   }, {
     key: "draw",
-    value: function draw(prevX, prevY, currX, currY) {
+    value: function draw(prevX, prevY, currX, currY, dt) {
       this.surface.line(prevX, prevY, currX, currY);
       this.surface.line(prevX + Math.random() * 10, prevY + Math.random() * 10, currX, currY);
     }
@@ -1069,7 +1179,7 @@ var SimpleBrush = /*#__PURE__*/function (_Brush) {
     }
   }, {
     key: "draw",
-    value: function draw(prevX, prevY, currX, currY) {
+    value: function draw(prevX, prevY, currX, currY, dt) {
       this.surface.line(prevX, prevY, currX, currY);
     }
   }, {
