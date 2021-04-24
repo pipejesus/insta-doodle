@@ -4,10 +4,14 @@ export default class RandomBrush extends Brush {
 
   init() {
     this.surface.strokeWeight(this.brushSize);
-    this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+    this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
     this.surface.strokeJoin('round');
     console.log('Random Brush Initialized');
   }
+
+	applyBrushSizeToCanvas() {
+		this.surface.strokeWeight(this.brushSize);
+	}
 
   draw(prevX, prevY, currX, currY, dt) {
 		this.surface.line(prevX, prevY, currX, currY);
@@ -15,7 +19,7 @@ export default class RandomBrush extends Brush {
   }
 
 	updateDrawingColor() {
-		this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+		this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
 	}
 
 }

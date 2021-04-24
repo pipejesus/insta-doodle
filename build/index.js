@@ -546,9 +546,9 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         r: 61,
         g: 61,
         b: 61,
-        a: 1
+        a: 255
       },
-      currentBrushName: 'RandomBrush',
+      currentBrushName: _this.props.defaultBrush || 'InkBrush',
       isColorPicker: false,
       undoCurrentIndex: 0,
       drawing: false
@@ -566,7 +566,6 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       label: 'Ink Brush',
       value: 'InkBrush'
     }];
-    _this.defaultBrush = _this.props.defaultBrush || 'InkBrush';
     _this.defaultBrushSize = Math.abs(_this.props.brushSize) || 2, _this.defaultMinBrushSize = Math.abs(_this.props.minBrushSize) || 1, _this.defaultMaxBrushSize = Math.abs(_this.props.maxBrushSize) || 20, _this.defaultCursorSize = Math.abs(_this.props.cursorSize) || 20, _this.undo = {};
     _this.canvas = null;
     _this.canvasW = 0;
@@ -579,12 +578,14 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     _this.brushes = {};
     _this.currentBrush = {};
     _this.handleColorChange = _this.handleColorChange.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.handleSelectBrush = _this.handleSelectBrush.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.toggleColorPicker = _this.toggleColorPicker.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.clearCanvas = _this.clearCanvas.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.undoBack = _this.undoBack.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.undoForward = _this.undoForward.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.touchStarted = _this.touchStarted.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.touchEnded = _this.touchEnded.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.saveSnapshot = _this.saveSnapshot.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     return _this;
   }
 
@@ -614,13 +615,18 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.canvas.mouseReleased(function (e) {
         _this2.touchEnded(p5i);
       });
+      this.canvas.mouseOut(function (e) {
+        _this2.touchEnded(p5i);
+      });
     }
   }, {
     key: "draw",
     value: function draw(p5i) {
       p5i.background(this.bgColor);
-      var dt = p5i.deltaTime;
-      this.drawContentUsingCurrentBrush(p5i, dt);
+      var dt = p5i.deltaTime; // p5i.blendMode(p5i.OVERLAY);
+
+      this.drawContentUsingCurrentBrush(p5i, dt); // p5i.blendMode(p5i.BLEND);
+
       this.drawCursorUsingCurrentBrush(p5i, dt);
     }
   }, {
@@ -673,7 +679,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         cursorSize: this.defaultCursorSize,
         rgba: this.state.currentColor
       });
-      this.currentBrush = this.brushes[this.defaultBrush];
+      this.currentBrush = this.brushes[this.state.currentBrushName];
     }
   }, {
     key: "loadSavedCanvasAndCreateUndo",
@@ -704,12 +710,14 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
     value: function undoBack() {
       var picture = this.undo.back();
       this.replacePictureOnSurface(picture);
+      this.saveSelectedCanvasToProperty(this.surface);
     }
   }, {
     key: "undoForward",
     value: function undoForward() {
       var picture = this.undo.forward();
       this.replacePictureOnSurface(picture);
+      this.saveSelectedCanvasToProperty(this.surface);
     }
   }, {
     key: "getCurrentCanvasPicture",
@@ -747,6 +755,7 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
   }, {
     key: "handleColorChange",
     value: function handleColorChange(color) {
+      color.a = 255 * (color.a / 1);
       this.setState({
         currentColor: color
       });
@@ -801,11 +810,33 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
       this.addCurrentSurfacePictureToUndo();
       this.saveSelectedCanvasToProperty(this.surface);
     }
+    /**
+     * Quick saves snapshot and triggers browser download
+     */
+
+  }, {
+    key: "saveSnapshot",
+    value: function saveSnapshot() {
+      var d = new Date();
+      var shot = "".concat(d.getFullYear(), ".").concat(d.getMonth(), ".").concat(d.getDate(), ".").concat(d.getHours(), ".").concat(d.getMinutes(), ".").concat(d.getSeconds(), ".").concat(d.getMilliseconds());
+      this.p5i.saveCanvas(this.canvas, 'snapshot-' + shot, 'png');
+    }
+  }, {
+    key: "handleSelectBrush",
+    value: function handleSelectBrush(brushClassName) {
+      var _this5 = this;
+
+      this.setState({
+        currentBrushName: brushClassName
+      }, function () {
+        _this5.currentBrush = _this5.brushes[_this5.state.currentBrushName];
+
+        _this5.currentBrush.applyBrushSizeToCanvas();
+      });
+    }
   }, {
     key: "render",
     value: function render() {
-      var _this5 = this;
-
       return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         className: "insta-doodle-toolbar",
         style: {
@@ -831,21 +862,17 @@ var DoodlerB = /*#__PURE__*/function (_React$Component) {
         onClick: this.undoForward
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Dashicon"], {
         icon: "redo"
+      })), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Button"], {
+        isSecondary: true,
+        onClick: this.saveSnapshot
+      }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["Dashicon"], {
+        icon: "camera-alt"
       })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["FlexBlock"], null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_15__["SelectControl"], {
-        style: {
-          height: 'auto'
-        },
         label: "Brush",
         hideLabelFromVision: true,
         value: this.state.currentBrushName,
         options: this.brushesList,
-        onChange: function onChange(brushClassName) {
-          _this5.setState({
-            currentBrushName: brushClassName
-          }, function () {
-            _this5.currentBrush = _this5.brushes[_this5.state.currentBrushName];
-          });
-        }
+        onChange: this.handleSelectBrush
       })))), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
         className: "insta-doodle-toolbar-contents"
       }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
@@ -926,6 +953,14 @@ var Brush = /*#__PURE__*/function () {
     key: "touchEnded",
     value: function touchEnded() {}
   }, {
+    key: "applyBrushSizeToCanvas",
+    value: function applyBrushSizeToCanvas() {}
+  }, {
+    key: "getBrushSize",
+    value: function getBrushSize() {
+      return this.brushSize;
+    }
+  }, {
     key: "changeColor",
     value: function changeColor(rgba) {
       this.rgba = rgba;
@@ -951,11 +986,10 @@ var Brush = /*#__PURE__*/function () {
       } else if (event.deltaY > 0) {
         this.brushSize--;
         this.brushSize = Math.max(this.minBrushSize, this.brushSize);
-      }
+      } // if (this.brushSize != this.oldBrushSize) {
 
-      if (this.brushSize != this.oldBrushSize) {
-        this.surface.strokeWeight(this.brushSize);
-      }
+
+      this.surface.strokeWeight(this.brushSize); // }
     }
   }]);
 
@@ -986,7 +1020,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js");
 /* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _Brush__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Brush */ "./src/doodler/brushes/Brush.js");
+/* harmony import */ var _utils_Calculations__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/Calculations */ "./src/doodler/utils/Calculations.js");
+/* harmony import */ var _Brush__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Brush */ "./src/doodler/brushes/Brush.js");
 
 
 
@@ -996,6 +1031,7 @@ __webpack_require__.r(__webpack_exports__);
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_4___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_3___default()(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
 
 
 
@@ -1014,40 +1050,65 @@ var InkBrush = /*#__PURE__*/function (_Brush) {
     key: "init",
     value: function init() {
       this.surface.strokeWeight(this.brushSize);
-      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
       this.surface.strokeJoin('round');
+      this.distanceTravelled = 0;
+      this.timePassed = 0;
       console.log('Ink Brush Initialized');
+    }
+  }, {
+    key: "applyBrushSizeToCanvas",
+    value: function applyBrushSizeToCanvas() {
+      this.surface.strokeWeight(this.brushSize);
+    }
+  }, {
+    key: "resetDistanceTravelled",
+    value: function resetDistanceTravelled() {
+      this.distanceTravelled = 0;
+      this.timePassed = 0;
+    }
+  }, {
+    key: "updateDistanceTravelled",
+    value: function updateDistanceTravelled(prevX, prevY, currX, currY, dt) {
+      this.timePassed += dt;
+      this.distanceTravelled += _utils_Calculations__WEBPACK_IMPORTED_MODULE_5__["default"].distance(prevX, prevY, currX, currY, dt);
     }
   }, {
     key: "draw",
     value: function draw(prevX, prevY, currX, currY, dt) {
-      this.surface.line(prevX, prevY, currX, currY);
+      this.updateDistanceTravelled(prevX, prevY, currX, currY, dt);
+      var distDeltaRatio = this.distanceTravelled / this.timePassed;
+      this.brushSize = this.brushSize + distDeltaRatio;
 
-      if (this.brushSize < this.maxBrushSize) {
-        this.brushSize = this.brushSize + dt / 40;
-        this.surface.strokeWeight(this.brushSize);
+      if (this.brushSize > this.maxBrushSize) {
+        this.brushSize = this.maxBrushSize;
       }
+
+      this.surface.strokeWeight(this.brushSize);
+      this.surface.line(prevX, prevY, currX, currY);
     }
   }, {
     key: "updateDrawingColor",
     value: function updateDrawingColor() {
-      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
     }
   }, {
     key: "touchStarted",
     value: function touchStarted() {
       this.originalBrushSize = this.brushSize;
+      this.resetDistanceTravelled();
     }
   }, {
     key: "touchEnded",
     value: function touchEnded() {
       this.brushSize = this.originalBrushSize;
       this.surface.strokeWeight(this.brushSize);
+      this.resetDistanceTravelled();
     }
   }]);
 
   return InkBrush;
-}(_Brush__WEBPACK_IMPORTED_MODULE_5__["default"]);
+}(_Brush__WEBPACK_IMPORTED_MODULE_6__["default"]);
 
 
 
@@ -1101,9 +1162,14 @@ var RandomBrush = /*#__PURE__*/function (_Brush) {
     key: "init",
     value: function init() {
       this.surface.strokeWeight(this.brushSize);
-      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
       this.surface.strokeJoin('round');
       console.log('Random Brush Initialized');
+    }
+  }, {
+    key: "applyBrushSizeToCanvas",
+    value: function applyBrushSizeToCanvas() {
+      this.surface.strokeWeight(this.brushSize);
     }
   }, {
     key: "draw",
@@ -1114,7 +1180,7 @@ var RandomBrush = /*#__PURE__*/function (_Brush) {
   }, {
     key: "updateDrawingColor",
     value: function updateDrawingColor() {
-      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
     }
   }]);
 
@@ -1173,9 +1239,14 @@ var SimpleBrush = /*#__PURE__*/function (_Brush) {
     key: "init",
     value: function init() {
       this.surface.strokeWeight(this.brushSize);
-      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
-      this.surface.strokeJoin('round');
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
+      this.surface.strokeJoin('MITER');
       console.log('Simple Brush Initialized');
+    }
+  }, {
+    key: "applyBrushSizeToCanvas",
+    value: function applyBrushSizeToCanvas() {
+      this.surface.strokeWeight(this.brushSize);
     }
   }, {
     key: "draw",
@@ -1185,7 +1256,7 @@ var SimpleBrush = /*#__PURE__*/function (_Brush) {
   }, {
     key: "updateDrawingColor",
     value: function updateDrawingColor() {
-      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b);
+      this.surface.stroke(this.rgba.r, this.rgba.g, this.rgba.b, this.rgba.a);
     }
   }]);
 
@@ -1193,6 +1264,24 @@ var SimpleBrush = /*#__PURE__*/function (_Brush) {
 }(_Brush__WEBPACK_IMPORTED_MODULE_5__["default"]);
 
 
+
+/***/ }),
+
+/***/ "./src/doodler/utils/Calculations.js":
+/*!*******************************************!*\
+  !*** ./src/doodler/utils/Calculations.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+var Calculations = {
+  distance: function distance(prevX, prevY, currX, currY, dt) {
+    return Math.sqrt(Math.pow(prevX - currX, 2) + Math.pow(prevY - currY, 2));
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (Calculations);
 
 /***/ }),
 

@@ -17,9 +17,12 @@ export default class DoodlerB extends React.Component {
 
 		this.state = {
 			currentColor: {
-				r: 61, g: 61, b: 61, a: 1
+				r: 61,
+				g: 61,
+				b: 61,
+				a: 255
 			},
-			currentBrushName: 'RandomBrush',
+			currentBrushName: this.props.defaultBrush || 'InkBrush',
 			isColorPicker: false,
 			undoCurrentIndex: 0,
 			drawing: false,
@@ -33,7 +36,6 @@ export default class DoodlerB extends React.Component {
 			{ label: 'Ink Brush', value: 'InkBrush' },
 		];
 
-		this.defaultBrush = this.props.defaultBrush || 'InkBrush';
 		this.defaultBrushSize = Math.abs(this.props.brushSize) || 2,
 		this.defaultMinBrushSize = Math.abs(this.props.minBrushSize) || 1,
 		this.defaultMaxBrushSize = Math.abs(this.props.maxBrushSize) || 20,
@@ -50,13 +52,16 @@ export default class DoodlerB extends React.Component {
 		this.oldY = 0;
 		this.brushes = {}
 		this.currentBrush = {};
+
 		this.handleColorChange = this.handleColorChange.bind(this);
+		this.handleSelectBrush = this.handleSelectBrush.bind(this);
 		this.toggleColorPicker = this.toggleColorPicker.bind(this);
 		this.clearCanvas = this.clearCanvas.bind(this);
 		this.undoBack = this.undoBack.bind(this);
 		this.undoForward = this.undoForward.bind(this);
 		this.touchStarted = this.touchStarted.bind(this);
 		this.touchEnded = this.touchEnded.bind(this);
+		this.saveSnapshot = this.saveSnapshot.bind(this);
   }
 
 	setup(p5i, canvasParentRef) {
@@ -68,13 +73,22 @@ export default class DoodlerB extends React.Component {
 		this.initBrushes();
 		p5i.noCursor();
 		this.loadSavedCanvasAndCreateUndo(p5i);
-		this.canvas.mouseWheel( ( ev ) => { ev.preventDefault(); this.currentBrush.onMouseWheel( ev );
-			return false} );
+
+		this.canvas.mouseWheel( ( ev ) => {
+			ev.preventDefault();
+			this.currentBrush.onMouseWheel( ev );
+			return false
+		});
 
 		this.canvas.mousePressed( (e) => {
 			this.touchStarted(p5i);
 		});
+
 		this.canvas.mouseReleased( (e) => {
+			this.touchEnded(p5i);
+		});
+
+		this.canvas.mouseOut( (e) => {
 			this.touchEnded(p5i);
 		});
 
@@ -83,7 +97,9 @@ export default class DoodlerB extends React.Component {
 	draw(p5i) {
 		p5i.background(this.bgColor);
 		const dt = p5i.deltaTime;
+		// p5i.blendMode(p5i.OVERLAY);
 		this.drawContentUsingCurrentBrush(p5i, dt);
+		// p5i.blendMode(p5i.BLEND);
 		this.drawCursorUsingCurrentBrush(p5i, dt);
 	}
 
@@ -132,7 +148,7 @@ export default class DoodlerB extends React.Component {
 			rgba: this.state.currentColor,
 		});
 
-		this.currentBrush = this.brushes[this.defaultBrush];
+		this.currentBrush = this.brushes[this.state.currentBrushName];
 	}
 
 	loadSavedCanvasAndCreateUndo(p5i) {
@@ -157,11 +173,13 @@ export default class DoodlerB extends React.Component {
 	undoBack() {
 		const picture = this.undo.back();
 		this.replacePictureOnSurface(picture);
+		this.saveSelectedCanvasToProperty(this.surface);
 	}
 
 	undoForward() {
 		const picture = this.undo.forward();
 		this.replacePictureOnSurface(picture);
+		this.saveSelectedCanvasToProperty(this.surface);
 	}
 
 	getCurrentCanvasPicture(p5ObjectWithCanvas) {
@@ -183,7 +201,7 @@ export default class DoodlerB extends React.Component {
 		}
 		this.oldX = p5i.mouseX;
 		this.oldY = p5i.mouseY;
-		p5i.image( this.surface, 0, 0 );
+		p5i.image( this.surface, 0, 0);
 	}
 
 	drawCursorUsingCurrentBrush( p5i, dt ) {
@@ -192,6 +210,7 @@ export default class DoodlerB extends React.Component {
 	}
 
 	handleColorChange(color) {
+		color.a = 255 * (color.a / 1);
 		this.setState({
 			currentColor: color
 		});
@@ -235,6 +254,22 @@ export default class DoodlerB extends React.Component {
 		this.saveSelectedCanvasToProperty(this.surface);
 	}
 
+	/**
+	 * Quick saves snapshot and triggers browser download
+	 */
+	saveSnapshot() {
+		let d = new Date();
+		const shot = `${d.getFullYear()}.${d.getMonth()}.${d.getDate()}.${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.${d.getMilliseconds()}`;
+		this.p5i.saveCanvas(this.canvas, 'snapshot-' + shot, 'png' );
+	}
+
+	handleSelectBrush(brushClassName) {
+		this.setState( { currentBrushName: brushClassName }, ()=> {
+			this.currentBrush = this.brushes[this.state.currentBrushName];
+			this.currentBrush.applyBrushSizeToCanvas();
+		});
+	}
+
   render() {
     return (
 			<div>
@@ -248,27 +283,23 @@ export default class DoodlerB extends React.Component {
 								<Button isSecondary onClick={this.clearCanvas}><Dashicon icon="trash"></Dashicon></Button>
 								<Button isSecondary onClick={this.undoBack}><Dashicon icon="undo"></Dashicon></Button>
 								<Button isSecondary onClick={this.undoForward}><Dashicon icon="redo"></Dashicon></Button>
+								<Button isSecondary onClick={this.saveSnapshot}><Dashicon icon="camera-alt"></Dashicon></Button>
 							</ButtonGroup>
 						</FlexItem>
 						<FlexBlock>
 							<SelectControl
-								style={{ height: 'auto' }}
 								label="Brush"
 								hideLabelFromVision={ true }
 								value={ this.state.currentBrushName }
 								options={ this.brushesList }
-								onChange={ ( brushClassName ) => {
-										this.setState( { currentBrushName: brushClassName }, ()=>{
-											this.currentBrush = this.brushes[this.state.currentBrushName];
-										});
-								} }
+								onChange={ this.handleSelectBrush }
 							/>
 						</FlexBlock>
 					</Flex>
 				</div>
 				<div className="insta-doodle-toolbar-contents">
 					<div className="insta-doodle-colorpicker" style={{ display: this.state.isColorPicker ? 'block': 'none'}}>
-						<RgbaColorPicker color={this.state.currentColor} onChange={this.handleColorChange} />
+						<RgbaColorPicker color={this.state.currentColor} onChange={ this.handleColorChange } />
 					</div>
 				</div>
 				<div

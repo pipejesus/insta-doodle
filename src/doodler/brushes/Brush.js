@@ -28,6 +28,11 @@ export default class Brush {
 	updateDrawingColor() {}
 	touchStarted() {}
 	touchEnded() {}
+	applyBrushSizeToCanvas() {}
+
+	getBrushSize() {
+		return this.brushSize;
+	}
 
 	changeColor(rgba) {
 		this.rgba = rgba;
@@ -51,9 +56,9 @@ export default class Brush {
       this.brushSize--;
       this.brushSize = Math.max( this.minBrushSize, this.brushSize );
     }
-    if (this.brushSize != this.oldBrushSize) {
+    // if (this.brushSize != this.oldBrushSize) {
       this.surface.strokeWeight(this.brushSize);
-    }
+    // }
   }
 
 }
