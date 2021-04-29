@@ -89,7 +89,18 @@ export default class DoodlerB extends React.Component {
 		});
 
 		this.canvas.mouseOut( (e) => {
-			this.touchEnded(p5i);
+		});
+
+		this.canvas.mouseOver( (e) => {
+			/**
+			 * handle the case when user started drawing on canvas
+			 * then moved the cursour out of canvas and released the button
+			 * while being out of canvas: in such case we need to stop the
+			 * drawing immediately upon cursor appearing over the canvas again
+			 */
+			if (this.state.drawing === true && p5i.mouseIsPressed === false) {
+				this.touchEnded(p5i);
+			}
 		});
 
 	}
@@ -196,7 +207,7 @@ export default class DoodlerB extends React.Component {
 	}
 
 	drawContentUsingCurrentBrush( p5i, dt ) {
-		if ( this.state.drawing === true ) {
+		if ( this.state.drawing === true && p5i.mouseIsPressed === true) {
 			this.currentBrush.draw( this.oldX, this.oldY, p5i.mouseX, p5i.mouseY, dt);
 		}
 		this.oldX = p5i.mouseX;
