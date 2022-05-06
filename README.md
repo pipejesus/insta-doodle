@@ -1,7 +1,7 @@
 Insta Doodle
 ==================
 
-Contributors:      Grzegorz Jasiński <grzegorz.jasinski@polcode.net>
+Contributors:      Grzegorz Jasiński <grzegorz.karol.jasinski@gmail.com>
 
 Tested up to:      5.7.0
 
@@ -17,4 +17,4 @@ A Gutenberg block plugin that enables you to draw quick sketches (doodles) in th
 Screenshots
 -----------
 
-![alt text](https://github.com/litill/polco-insta-doodle/blob/main/insta-doodle.gif?raw=true)
+![alt text](https://github.com/litill/insta-doodle/blob/main/insta-doodle.gif?raw=true)
